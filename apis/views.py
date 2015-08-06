@@ -29,7 +29,8 @@ senzari_account_id = '2445581183408'
 
 #TODO:using decorator
 def validate_token(request):
-    token = request.REQUEST.get('token', '')    
+    #TODO:
+    token = request.REQUEST.get('api_key', '')    
     return token == TOKEN
         
 
