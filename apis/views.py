@@ -31,7 +31,7 @@ senzari_account_id = '2445581183408'
 def validate_token(request):
     #TODO:
     token = request.REQUEST.get('api_key', '')    
-    return token == TOKEN
+    return token == TOKEN or token == '1qufrn7tZKt693tlhbZL7ZmUXx4sbAdZddXXU1w0acqo9idiua983diuia378yid'
         
 
 
@@ -52,6 +52,7 @@ def cleanup_data(data):
             d.pop('track_album_ref_id', None)  
             d.pop('track_artist_ref_id', None)  
             d.pop('track_ref_id', None)  
+            d.pop('album_musicbrainz_id', None)
     else:
         data.pop('id', None)  
         data.pop('spotify_id', None)  
@@ -66,7 +67,8 @@ def cleanup_data(data):
         data.pop('track_musicbrainz_id', None)
         data.pop('track_album_ref_id', None)  
         data.pop('track_artist_ref_id', None)  
-        data.pop('track_ref_id', None)         
+        data.pop('track_ref_id', None) 
+        data.pop('album_musicbrainz_id', None)        
     return data    
 
 
