@@ -11,3 +11,6 @@ import logging
 LOG_LEVEL = logging.DEBUG
 
 TOKEN = 'uioasjfdoa9384uo3redfjasr983r5uoadfas2dsfjd9o7pafjskdfjosauf0923'
+
+
+DOWNLOAD_DIR = 'static/download/'

@@ -15,11 +15,13 @@ from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
 from apis.models import *
-from mcx.settings import TOKEN
+from mcx.settings import TOKEN, DOWNLOAD_DIR
 
 
 omnifone_url = 'https://gateway-prod.core-aws.ribob03.net:443/api'
 _authorization = 'b5ac9cdb:6c682f4ef33d3f04ed75c43de3bb6d56'
+
+
 
 senzari_url = 'http://api.musicgraph.com/api/v2'
 api_key = '1cd705639b7cb9846c9d1cda9c3a6324'
@@ -33,42 +35,36 @@ def validate_token(request):
     token = request.REQUEST.get('api_key', '')    
     return token == TOKEN or token == '1qufrn7tZKt693tlhbZL7ZmUXx4sbAdZddXXU1w0acqo9idiua983diuia378yid'
         
+pop_fields = ['id',
+ 'spotify_id',
+ 'musicbrainz_id',
+ 'artist_ref_id',
+ 'musicbrainz_image_url',
+ 'album_artist_id',
+ 'album_ref_id',
+ 'track_artist_id',
+ 'track_spotify_id',
+ 'track_album_id',
+ 'track_musicbrainz_id',
+ 'track_album_ref_id',
+ 'track_artist_ref_id',
+ 'track_ref_id',
+ 'album_musicbrainz_id']
 
-
-def cleanup_data(data):
+def cleanup_data(data, exclude=[]):
+    popup_fields = pop_fields[:]
+    for e in exclude:
+        popup_fields.remove(e)
+    new_data = []
     if type(data) == list:
         for d in data:
-            d.pop('id', None)  
-            d.pop('spotify_id', None)  
-            d.pop('musicbrainz_id', None)
-            d.pop('artist_ref_id', None)
-            d.pop('musicbrainz_image_url', None)
-            d.pop('album_artist_id', None)
-            d.pop('album_ref_id', None)
-            d.pop('track_artist_id', None)
-            d.pop('track_spotify_id', None)
-            d.pop('track_album_id', None)
-            d.pop('track_musicbrainz_id', None)
-            d.pop('track_album_ref_id', None)  
-            d.pop('track_artist_ref_id', None)  
-            d.pop('track_ref_id', None)  
-            d.pop('album_musicbrainz_id', None)
+            for f in popup_fields:
+                d.pop(f, None) 
+                new_data.append(d)   
+        return new_data        
     else:
-        data.pop('id', None)  
-        data.pop('spotify_id', None)  
-        data.pop('musicbrainz_id', None)
-        data.pop('artist_ref_id', None)
-        data.pop('musicbrainz_image_url', None)
-        data.pop('album_artist_id', None)
-        data.pop('album_ref_id', None)
-        data.pop('track_artist_id', None)
-        data.pop('track_spotify_id', None)
-        data.pop('track_album_id', None)
-        data.pop('track_musicbrainz_id', None)
-        data.pop('track_album_ref_id', None)  
-        data.pop('track_artist_ref_id', None)  
-        data.pop('track_ref_id', None) 
-        data.pop('album_musicbrainz_id', None)        
+        for f in popup_fields:
+            data.pop(f, None) 
     return data    
 
 
@@ -177,7 +173,19 @@ def tracks(request):
         #r = None  
         pass
     data = r.json()['data']
+    
+    # for d in data:
+    #     t = None
+    #     senzari_track_id = d.get('id')
+    #     if Track.objects.filter(senzari_track_id=senzari_track_id).exists():
+    #         t = Track.objects.get(senzari_track_id=senzari_track_id)
+    #     else:
+    #         #TODO:if no artist name, use performer name?
+    #         t = Track(track_id=uuid.uuid4().hex, senzari_track_id=senzari_track_id, title=d['title'], singer=d['artist_name'])    
+    #         t.save()
+    #     d['id'] = t.track_id
     data = cleanup_data(data)
+    #data = cleanup_data(data, exclude=['id'])
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -190,13 +198,12 @@ def recommend(request):
     user_id = request.GET.get('device_id', '')
     headers = {'Content-type': 'application/json',  'Accept': 'application/json'}
     #check the token, and find the client for that token. For now, assume rokid. TODO:
-    
-    
+    data = None
+    ustation = None
     if not User_Station.objects.filter(client_name='rokid', user_id=user_id).exists():
         #no station created yet for this user_id. So create it
         #First check if a user profile existing in senzari for this user, if not, create one
-        #payload.update({'user_id':user_id})
-        
+        #payload.update({'user_id':user_id})       
 
         
         print 'creating the user...'
@@ -377,8 +384,69 @@ def recommend(request):
         ustation.last_track_id = track_id
         ustation.save()
 
+    t = None
+    senzari_track_id = data.get('id')
+    if Track.objects.filter(senzari_track_id=senzari_track_id).exists():
+        t = Track.objects.get(senzari_track_id=senzari_track_id)
+    else:
+        #TODO:if no artist name, use performer name?
+        t = Track(track_id=uuid.uuid4().hex, senzari_track_id=senzari_track_id, title=data['title'], singer=data['artist_name'])    
+        try:    
+            print 'requesting: ', senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key
+            r = requests.get(senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key)
+        except  requests.exceptions.ReadTimeout as e:
+            errors.append('senzari reading timeout!')
+        except  requests.exceptions.ConnectTimeout as e:
+            errors.append('senzari connect timeout!')
+        except Exception as e:
+            #check if doing mocking development, and if so just return some mock objects
+            #r = None  
+            pass
+        print 'result of getting omnifone id:', r.json()
+        while (not r.json().get('data', None)) or (not r.json().get('data').get('track_omnifone_id', None)):
+            payload = {'action':'skip'}    
+            #if didn't get the omnifone track id, get another recommendation
+            try:    
+                r = requests.get(senzari_url+'/station/'+ustation.station_id+'/'+ustation.station_session_id+'?api_key='+api_key, params=payload, headers=headers)
+            except  requests.exceptions.ReadTimeout as e:
+                errors.append('senzari reading timeout!')
+            except  requests.exceptions.ConnectTimeout as e:
+                errors.append('senzari connect timeout!')
+            except Exception as e:
+                #check if doing mocking development, and if so just return some mock objects
+                #r = None  
+                pass
+            print 'after getting the recommended song, r:', r.json()
+            data = r.json()['data']
+            track_id = data['id'] 
+            ustation.last_track_id = track_id
+            ustation.save()
 
-    data = cleanup_data(data)  
+            senzari_track_id = data.get('id')
+            if Track.objects.filter(senzari_track_id=senzari_track_id).exists():
+                t = Track.objects.get(senzari_track_id=senzari_track_id)
+            else:
+                t = Track(track_id=uuid.uuid4().hex, senzari_track_id=senzari_track_id, title=data['title'], singer=data['artist_name'])    
+            try:    
+                print 'requesting: ', senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key
+                r = requests.get(senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key)
+            except  requests.exceptions.ReadTimeout as e:
+                errors.append('senzari reading timeout!')
+            except  requests.exceptions.ConnectTimeout as e:
+                errors.append('senzari connect timeout!')
+            except Exception as e:
+                #check if doing mocking development, and if so just return some mock objects
+                #r = None  
+                pass
+
+        
+        t.provider_track_id = r.json().get('data').get('track_omnifone_id')
+        t.save()
+
+        
+    data['id'] = t.track_id
+    print 'data is:', data
+    data = cleanup_data(data, exclude=['id'])  
     
     return HttpResponse(json.dumps(data), content_type="application/json")
 
@@ -401,3 +469,77 @@ def countries(request):
         
 
 
+def download_track(request):
+    if not validate_token(request):
+        return HttpResponse(json.dumps({'msg':'Not Authorized!'}), content_type="application/json", status=401)
+    
+    #this track_id is our track_id, isntead of service provider's
+    #temp, this track_id is now changed to senzari id. just find our id from it
+    track_id = request.GET.get('track_id')
+    #t = Track.objects.get(senzari_track_id=track_id)
+    #track_id = t.track_id
+    filename = download(track_id)
+    if not filename:
+        #TODO: status code and more detailed error msg
+        return HttpResponse(json.dumps({'msg':'failed to download the track!'}), content_type="application/json", status=404) 
+    response = HttpResponse(FileWrapper(open(filename)), content_type='audio/mpeg', status=206) #application/zip
+    response['Content-Disposition'] = 'attachment; filename='+filename
+    response['Accept-Ranges'] = 'bytes'
+    print 'filename:', '/' + filename
+    response['X-Accel-Redirect'] = '/' + filename
+    response['X-Accel-Buffering'] = 'no'
+    return response 
+
+
+
+
+
+def download(track_id):
+    print 'track_id to download:', track_id
+    filename = DOWNLOAD_DIR+track_id+'.mp3'
+    #if it already downloaded previously, just return that file aname
+    if os.path.isfile(filename):
+        return filename
+    #provider_track_id = Track.objects.get(track_id=track_id).provider_track_id
+    download_url = get_download_url(track_id)
+    if not download_url:
+        return None
+    r = requests.get(download_url, stream=True)
+    chunk_size = 1024
+    with open(filename, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size):
+            fd.write(chunk)
+    return  filename
+
+
+
+
+def get_download_url(track_id):
+    payload = {'_authorization':_authorization, 
+              }  
+    #get the provider track_id
+    t = Track.objects.get(track_id=track_id)  
+
+    track_id = t.provider_track_id
+    print 'requesting:', omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json'                            
+    r = requests.get(omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json', params=payload, timeout=90)
+    
+    if r.status_code != 200:
+        #TODO:return 404 for download url not found?
+        print 'r.status_code:', r.status_code     
+        print 'r.json():', r.json()   
+        return ''
+    rjson = r.json()    
+    token = rjson.get(u'trackRights')[0]['token']    
+    payload.update({'token':token,
+                    'profileName':'320-mp3-mpeg-full',
+                    'right':'play',
+                    'userId':'demo:user1',
+                    'country':'US'
+        })
+    r = requests.get(omnifone_url+'/contentUrl/audio/trusted/urls/'+track_id+'.json', params=payload, timeout=90)
+    if r.status_code != 200:
+        return ''
+    download_url = r.json()['url']
+    print 'download_url:', download_url
+    return download_url

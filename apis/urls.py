@@ -7,7 +7,7 @@ import views as user_views
 
 urlpatterns = [
 
-    url(r'artists/$', 'apis.views.artists'),
+    url(r'^artists/$', 'apis.views.artists'),
     url(r'^albums/$', 'apis.views.albums'),
     url(r'^tracks/$', 'apis.views.tracks'),
     url(r'^countries/$', 'apis.views.countries'),
@@ -15,6 +15,8 @@ urlpatterns = [
     url(r'^decades/$', 'apis.views.decades'),
     url(r'^recommend/$', 'apis.views.recommend'),
     url(r'^feedback/$', 'apis.views.feedback'),
+    url(r'^download_track/$', 'apis.views.download_track'),
+    
     
 
 ]    
