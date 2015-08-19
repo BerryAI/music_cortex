@@ -27,6 +27,8 @@ senzari_url = 'http://api.musicgraph.com/api/v2'
 api_key = '1cd705639b7cb9846c9d1cda9c3a6324'
 senzari_account_id = '2445581183408'
 
+aivvy_url = 'http://lab.dj4.me'
+
 
 
 #TODO:using decorator
@@ -200,6 +202,7 @@ def recommend(request):
     #check the token, and find the client for that token. For now, assume rokid. TODO:
     data = None
     ustation = None
+    omnifone_track_id = None
     if not User_Station.objects.filter(client_name='rokid', user_id=user_id).exists():
         #no station created yet for this user_id. So create it
         #First check if a user profile existing in senzari for this user, if not, create one
@@ -321,13 +324,17 @@ def recommend(request):
             try:    
                 r = requests.delete(senzari_url+'/user/'+senzari_account_id+':'+user_id+'/stations/'+ustation.station_id+'?api_key='+api_key, headers=headers)
             except  requests.exceptions.ReadTimeout as e:
+                print 'senzari reading timeout!'
                 errors.append('senzari reading timeout!')
             except  requests.exceptions.ConnectTimeout as e:
+                print 'senzari connect timeout!'
                 errors.append('senzari connect timeout!')
             except Exception as e:
                 #check if doing mocking development, and if so just return some mock objects
                 #r = None  
+                print 'other errors happened'
                 pass
+
             print 'deleting existing station, r:', r
             #generate a new station
             #first find the artist id
@@ -391,19 +398,67 @@ def recommend(request):
     else:
         #TODO:if no artist name, use performer name?
         t = Track(track_id=uuid.uuid4().hex, senzari_track_id=senzari_track_id, title=data['title'], singer=data['artist_name'])    
-        try:    
-            print 'requesting: ', senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key
-            r = requests.get(senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key)
-        except  requests.exceptions.ReadTimeout as e:
-            errors.append('senzari reading timeout!')
-        except  requests.exceptions.ConnectTimeout as e:
-            errors.append('senzari connect timeout!')
-        except Exception as e:
-            #check if doing mocking development, and if so just return some mock objects
-            #r = None  
-            pass
+        # try:    
+        #     print 'requesting: ', aivvy_url+'/search_tracks/?query='+data['artist_name']+' '+data['title']
+        #     r = requests.get(aivvy_url+'/search_tracks/?query='+data['artist_name']+' '+data['title'])
+        # except  requests.exceptions.ReadTimeout as e:
+        #     errors.append('senzari reading timeout!')
+        # except  requests.exceptions.ConnectTimeout as e:
+        #     errors.append('senzari connect timeout!')
+        # except Exception as e:
+        #     #check if doing mocking development, and if so just return some mock objects
+        #     #r = None  
+        #     pass
+
+        payloados = {'_authorization':_authorization, 
+               'country':'US',
+               'searchAttributes':'combinedName',
+               'distinct':'true',
+               'index':'track',
+               'right':'play',
+               #'rights':'subscription_playlist_stream',
+               'licenseeId':'demo',
+               'limit':500
+                   }
+        payloados.update({'query':data['artist_name']+' '+data['title']})
+        r = requests.get(omnifone_url+'/find/catalogues/demo/query.json', params=payloados, timeout=90)    
+        rjson = r.json()  
+        print 'rjson:', rjson 
         print 'result of getting omnifone id:', r.json()
-        while (not r.json().get('data', None)) or (not r.json().get('data').get('track_omnifone_id', None)):
+        #again all the temporary things for the crapy catalogs we have now
+        omnifone_track_id = None
+        for trackId in r.json()['trackIds']:
+            track_id = trackId['trackId']
+            payloadom = {'_authorization':_authorization, 
+              } 
+            print 'the omnifone track id to check:', track_id  
+            print 'requesting:', omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json'                            
+            r = requests.get(omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json', params=payloadom, timeout=90)
+            
+            if r.status_code != 200:
+                #TODO:return 404 for download url not found?
+                print 'r.status_code:', r.status_code     
+                print 'r.json():', r.json()   
+                return ''
+            rjson = r.json()    
+            token = rjson.get(u'trackRights')[0]['token']    
+            payloadom.update({'token':token,
+                            'profileName':'320-mp3-mpeg-full',
+                            'right':'play',
+                            'userId':'demo:user1',
+                            'country':'US'
+                })
+            r = requests.get(omnifone_url+'/contentUrl/audio/trusted/urls/'+track_id+'.json', params=payloadom, timeout=90)
+            if r.status_code != 200:
+                pass
+            else:    
+                download_url = r.json()['url']
+                if download_url:
+                    omnifone_track_id = track_id
+                    break
+
+
+        while not omnifone_track_id:
             payload = {'action':'skip'}    
             #if didn't get the omnifone track id, get another recommendation
             try:    
@@ -427,20 +482,51 @@ def recommend(request):
                 t = Track.objects.get(senzari_track_id=senzari_track_id)
             else:
                 t = Track(track_id=uuid.uuid4().hex, senzari_track_id=senzari_track_id, title=data['title'], singer=data['artist_name'])    
-            try:    
-                print 'requesting: ', senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key
-                r = requests.get(senzari_url+'/track/'+senzari_track_id+'?catalog=omnifone&api_key='+api_key)
-            except  requests.exceptions.ReadTimeout as e:
-                errors.append('senzari reading timeout!')
-            except  requests.exceptions.ConnectTimeout as e:
-                errors.append('senzari connect timeout!')
-            except Exception as e:
-                #check if doing mocking development, and if so just return some mock objects
-                #r = None  
-                pass
-
+            
+                try:    
+                    print 'requesting: ', aivvy_url+'/search_tracks/?query='+data['artist_name']+' '+data['title']
+                    r = requests.get(aivvy_url+'/search_tracks/?query='+data['artist_name']+' '+data['title'])
+                except  requests.exceptions.ReadTimeout as e:
+                    errors.append('senzari reading timeout!')
+                except  requests.exceptions.ConnectTimeout as e:
+                    errors.append('senzari connect timeout!')
+                except Exception as e:
+                    #check if doing mocking development, and if so just return some mock objects
+                    #r = None  
+                    pass
+                print 'result of getting omnifone id:', r.json()
+                #again all the temporary things for the crapy catalogs we have now
+                omnifone_track_id = None
+                for trackId in r.json()['trackIds']:
+                    track_id = trackId['trackId']
+                    payloadom = {'_authorization':_authorization, 
+                      } 
+                    print 'requesting:', omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json'                            
+                    r = requests.get(omnifone_url+'/license/licensees/demo/licenses/tracks/US/'+track_id+'.json', params=payloadom, timeout=90)
+                    
+                    if r.status_code != 200:
+                        #TODO:return 404 for download url not found?
+                        print 'getting token, r.status_code:', r.status_code     
+                        print 'r.json():', r.json()   
+                        return ''
+                    rjson = r.json()    
+                    token = rjson.get(u'trackRights')[0]['token']    
+                    payloadom.update({'token':token,
+                                    'profileName':'320-mp3-mpeg-full',
+                                    'right':'play',
+                                    'userId':'demo:user1',
+                                    'country':'US'
+                        })
+                    r = requests.get(omnifone_url+'/contentUrl/audio/trusted/urls/'+track_id+'.json', params=payloadom, timeout=90)
+                    if r.status_code != 200:
+                        pass
+                    else:    
+                        download_url = r.json()['url']
+                        if download_url:
+                            omnifone_track_id = track_id
+                            break
         
-        t.provider_track_id = r.json().get('data').get('track_omnifone_id')
+        t.provider_track_id = omnifone_track_id
         t.save()
 
         
@@ -497,6 +583,7 @@ def download_track(request):
 def download(track_id):
     print 'track_id to download:', track_id
     filename = DOWNLOAD_DIR+track_id+'.mp3'
+    print 'filename:', filename
     #if it already downloaded previously, just return that file aname
     if os.path.isfile(filename):
         return filename
@@ -504,7 +591,9 @@ def download(track_id):
     download_url = get_download_url(track_id)
     if not download_url:
         return None
+    print 'requesting to download the track...'
     r = requests.get(download_url, stream=True)
+    print 'downloading request, r.status_code:', r.status_code
     chunk_size = 1024
     with open(filename, 'wb') as fd:
         for chunk in r.iter_content(chunk_size):
@@ -526,7 +615,7 @@ def get_download_url(track_id):
     
     if r.status_code != 200:
         #TODO:return 404 for download url not found?
-        print 'r.status_code:', r.status_code     
+        print 'get_download_url r.status_code:', r.status_code     
         print 'r.json():', r.json()   
         return ''
     rjson = r.json()    
