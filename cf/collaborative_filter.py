@@ -481,52 +481,6 @@ def get_predict_list_with_name(user_predict_list, unique_tracks_info_dict_revers
 
     return user_predict_list_with_name
 
-def generate_rate_by_playlist_game(played_list):
-    """Generate rating score by playing history
-
-    :param played_list: list of tuple, (track ID, timestamp)
-    :return rate_generated_by_list: rating score of each track
-    :rtype: dictionary
-    """
-
-    # track_info = dict()
-    # time_format = ""
-    # for i in range(0, len(played_list)-1):
-    #     played_time = abs(time.mktime(time.strptime(played_list[i][1], time_format)) \
-    #      - time.mktime(time.strptime(played_list[i+1][1], time_format)))
-    #     if played_time < 30:
-    #
-
-def get_user_rate_front_end(user):
-    """Get user rate for each track ever listened from front end
-
-    :param user: user ID
-    :return user_rate: rating score of each track ever listened
-    :rtype: dictionary
-    """
-
-    liked_list = get_liked_list_front_end(user)
-    disliked_list = get_disliked_list_front_end(user)
-    played_list = get_played_list_front_end(user)
-    rate_generated_by_list = generate_rate_by_playlist(played_list)
-
-    user_rate = dict()
-
-    for track in liked_list:
-        if track not in user_rate:
-            user_rate[track] = 5
-
-    for track in disliked_list:
-        if track not in user_rate:
-            user_rate[track] = 1
-        else:
-            # if a user rate a song with both like and dislike, give it 3
-            if user_rate[track] == 5:
-                user_rate[track] = 3
-
-    for track in rate_generated_by_list:
-        if track not in user_rate:
-            user_rate[track] = rate_generated_by_list[track]
 
 
 def get_track_tags(track):
@@ -543,45 +497,3 @@ def get_track_tags(track):
     data = res.fetchall()
     conn.close()
     return data
-
-def get_track_tags_front_end(track):
-    """Get track tags from front end api
-
-    :param track: Track ID
-    :return tags_list: list of tag tuples, (tag, counting)
-    :rtype: list of tuples
-    """
-
-    # To be Added, after front end API is ready
-
-def tell_user_taste(user):
-    """Get user taste from listening history
-
-    :param user: user id
-    :return user_taste: description of user taste
-    :rtype: string
-    """
-
-    user_rate = get_user_rate_front_end(user)
-
-    user_tags_tmp = dict()
-
-    for track in user_rate:
-        data = get_track_tags_front_end(track_index[track])
-        for value in data:
-            if value[0] in user_tags_tmp:
-                user_tags_tmp[value[0]] += user_rate[track] * value[1]
-            else:
-                user_tags_tmp[value[0]] = user_rate[track] * value[1]
-
-    sorted_user_tags_tmp = sorted(user_tags_tmp.items(), key=operator.itemgetter(1))
-    weight = 0
-    k = min(len(sorted_user_tags_tmp), 5)
-    for i in range(0,k):
-        weight += sorted_user_tags_tmp[i][1]
-
-    taste_output = ""
-    for i in range(0,k):
-        taste_output += sorted_user_tags_tmp[0] + "," + str(int(sorted_user_tags_tmp[i][1] * 100.0 / weight)) + "%" + " "
-
-    return taste_output
