@@ -98,7 +98,6 @@ def get_user_played_list_with_events(user_ID, **args):
 
     base_url = "http://berry-acai.appspot.com/api/activities/?"
     url = base_url + urllib.urlencode(query_param)
-    print url
     response = urllib.urlopen(url)
     data = json.loads(response.read())
 
