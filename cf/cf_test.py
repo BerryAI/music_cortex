@@ -24,7 +24,9 @@ time_format = "%Y-%m-%dT%H:%M:%SZ"
 # data = get_track_tags_front_end(29903619)
 # print data
 
-get_user_played_list_with_events("user_1", eventType="best", b=2, c=3)
+user_1 = "5629499534213120"
+data = get_user_played_list_with_events(user_1, eventType="NotMyTaste")
+print data
 
 # dbfile = "lastfm_tags.db"
 #

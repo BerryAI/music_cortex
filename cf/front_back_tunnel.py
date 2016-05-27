@@ -96,13 +96,15 @@ def get_user_played_list_with_events(user_ID, **args):
         query_param["timestamp_to"] = args["timestamp_to"]
     query_param["user_id"] = user_ID
 
-    base_url = "hosts/activities/?"
+    base_url = "http://berry-acai.appspot.com/api/activities/?"
     url = base_url + urllib.urlencode(query_param)
-    response = urllib2.urlopen(url)
-    data = json.load(response)
+    print url
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
 
-    if data["user_id"] is not user_ID:
-        return user_play_list
+    if "status" in data:
+        if data["status"] == "failed" or data["status"] =="error":
+            return user_play_list
 
     for value in data["track_ids"]:
         user_play_list.append(value["track_id"])
