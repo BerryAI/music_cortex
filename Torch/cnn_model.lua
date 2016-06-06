@@ -27,3 +27,11 @@ function cnn_model()
    
    return model
 end
+
+function cnn_visualize(model)
+   print '==> visualizing ConvNet filters'
+   print('Layer 1 filters:')
+   itorch.image(model:get(1).weight)
+   print('Layer 2 filters:')
+   itorch.image(model:get(5).weight)
+end
