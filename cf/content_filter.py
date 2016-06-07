@@ -131,7 +131,7 @@ def get_user_most_played_tags(filename_written_tags, percentage):
     tag_dictionary = dict()
     top_tag_index = dict()
 
-    with io.open(filename_written_tags,'r', encoding='utf8') as fp:
+    with io.open(filename_written_tags,'r') as fp:
         for line in fp:
             contents = line.rstrip('\n').split("<SEP>")
             for i in range(2, len(contents)-1):
