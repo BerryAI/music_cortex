@@ -1,22 +1,34 @@
 #import * from collaborative_filter
 from front_back_tunnel import *
+from tell_user_taste import *
 import sqlite3
 
+''' Tell USer Taste Test Part
+    user ticket: 5662329727352832
+'''
+user_1 = "5662329727352832"
+print "user number is: ", user_1
+data = tell_user_taste(user_1)
+print data
 
-filename = "unique_tracks.txt"
-filename_subset = "subset_unique_tracks.txt"
-filename_test = "test.txt"
-user_log_filename_test = "user_log_test.txt"
-user_log_filename = "userid-timestamp-artid-artname-traid-traname.tsv"
-user_log_filename_small = "userid-timestamp-artid-artname-traid-traname_small.tsv"
-user_log_final_filename_small = "final_log_small.txt"
-user_log_intersection = "full_log.txt"
-similar_user_filename = "similar_user.txt"
-similar_weight_user_filename = "similar_user_weight.txt"
-k = 5
-max_k = 10
-recommended_num = 100
-time_format = "%Y-%m-%dT%H:%M:%SZ"
+''' End of the User Taste Test Part'''
+
+
+#
+# filename = "unique_tracks.txt"
+# filename_subset = "subset_unique_tracks.txt"
+# filename_test = "test.txt"
+# user_log_filename_test = "user_log_test.txt"
+# user_log_filename = "userid-timestamp-artid-artname-traid-traname.tsv"
+# user_log_filename_small = "userid-timestamp-artid-artname-traid-traname_small.tsv"
+# user_log_final_filename_small = "final_log_small.txt"
+# user_log_intersection = "full_log.txt"
+# similar_user_filename = "similar_user.txt"
+# similar_weight_user_filename = "similar_user_weight.txt"
+# k = 5
+# max_k = 10
+# recommended_num = 100
+# time_format = "%Y-%m-%dT%H:%M:%SZ"
 
 # data = get_track_info_by_trackID(29903689)
 # print data
@@ -24,9 +36,9 @@ time_format = "%Y-%m-%dT%H:%M:%SZ"
 # data = get_track_tags_front_end(29903619)
 # print data
 
-user_1 = "5629499534213120"
-data = get_user_played_list_with_events(user_1, eventType="NotMyTaste")
-print data
+# user_1 = "5629499534213120"
+# data = get_user_played_list_with_events(user_1, eventType="NotMyTaste")
+# print data
 
 # dbfile = "lastfm_tags.db"
 #
