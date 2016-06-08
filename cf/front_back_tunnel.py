@@ -53,6 +53,7 @@ def get_track_lastfm_tags(track_ID):
     api_key = "c5e3f10d5180158b1e2b9a634bb83738"
     query_param = {"method": method, "artist": artist, "track": track, "api_key": api_key, "format": "json"}
     url = base_url + urllib.urlencode(query_param)
+    print url
     response = urllib2.urlopen(url)
     data = json.load(response)
 
@@ -60,6 +61,27 @@ def get_track_lastfm_tags(track_ID):
         for value in data["toptags"]["tag"]:
             tmp = (value["name"], value["count"])
             tags_list.append(tmp)
+
+    return tags_list
+
+def get_initial_track_tags():
+    """Get track tags for initial 10 songs
+
+    :return tags_list: all tags for 10 songs
+    :rtype: dictionary
+    """
+
+    tags_list = dict()
+    tags_list["49907407"] = [("pop",100), ("Canadian",100), ("guitar",100)]
+    tags_list["43352778"] = [("electro house",100), ("pop",70), ("dance",65)]
+    tags_list["12783733"] = [("pop",100), ("dance",65), ("urban",23), ("2011",17), ("electronic",18)]
+    tags_list["11811820"] = [("soul",100), ("pop",69), ("British",47), ("2011",8)]
+    tags_list["624978"] = [("jazz",100), ("piano",11), ("vocal jazz",37)]
+    tags_list["21833748"] = [("classical",100), ("cello",100)]
+    tags_list["54090820"] = [("country",100), ("10s",100), ("modern country",100)]
+    tags_list["49997742"] = [("celtic",100), ("new age",100), ("adult alternative",100)]
+    tags_list["51879005"] = [("r&b",100), ("funk",100), ("trance",100), ("pop",100)]
+    tags_list["4390535"] = [("folk",100), ("60s", 24), ("Bob Dylan", 12)]
 
     return tags_list
 
@@ -102,7 +124,7 @@ def get_user_played_list_with_events(user_ID, **args):
     data = json.loads(response.read())
 
     if "status" in data:
-        if data["status"] == "failed" or data["status"] =="error":
+        if data["status"] == "failed":
             return user_play_list
 
     for value in data["track_ids"]:
