@@ -36,6 +36,9 @@ def tell_user_initial_taste(user_ID):
 
     user_taste = dict()
     user_rate = get_user_rate_front_end(user_ID)
+    if len(user_rate) == 0:
+        user_taste["status"] = "error"
+        return json.dumps(user_taste) 
 
     user_tags_tmp = dict()
 
