@@ -13,6 +13,17 @@ print data
 
 ''' End of the User Taste Test Part'''
 
+''' Get acoustic data Part
+    You need to point out the path of subset_unique_tracks.txt
+    and the base directory of data file, naming MillionSongSubset
+'''
+filename_subset = "path/subset_unique_tracks.txt"
+base_dir = "path/MillionSongSubset/data"
+data = get_acoustic_data(filename_subset, base_dir)
+print data
+
+''' End of the User Taste Test Part'''
+
 
 #
 # filename = "unique_tracks.txt"

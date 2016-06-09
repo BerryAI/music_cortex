@@ -38,7 +38,7 @@ def tell_user_initial_taste(user_ID):
     user_rate = get_user_rate_front_end(user_ID)
     if len(user_rate) == 0:
         user_taste["status"] = "error"
-        return json.dumps(user_taste) 
+        return json.dumps(user_taste)
 
     user_tags_tmp = dict()
 
@@ -90,9 +90,7 @@ def tell_user_taste_later(user_ID):
 
 
     for track in user_rate:
-        print "track is: ", track
         tags_data = get_track_lastfm_tags(track)
-        print tags_data
         for value in tags_data:
             if value[0] in user_tags_tmp:
                 user_tags_tmp[value[0]] += (user_rate[track]-3) * value[1]

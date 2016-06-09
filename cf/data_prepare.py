@@ -61,3 +61,24 @@ def get_user_CNN_training_data(user_ID):
         data[track_index[value]].append([segments_start, segments_pitches, segments_timbre, tag_vector])
 
     return data
+
+def get_acoustic_data(filename, base_dir):
+    """Get acoustic data for CNN training
+
+    :param filename: filename for unique MSD tracks
+    :param base_dir: base directory for data
+    :return data: training data
+    :rtype: list
+    """
+
+    MSD_track_ID_dict = get_MSD_track_ID_index(filename)
+    data = [None] * len(MSD_track_ID_dict)
+    for key in MSD_track_ID_dict:
+
+        data[MSD_track_ID_dict[key]] = []
+        segments_start = extract_segments_start(base_dir, key)
+        segments_pitches = extract_segments_pitches(base_dir, key)
+        segments_timbre = extract_segments_timbre(base_dir, key)
+        data[MSD_track_ID_dict[key]].append([segments_start, segments_pitches, segments_timbre])
+
+    return data

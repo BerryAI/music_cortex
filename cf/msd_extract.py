@@ -96,3 +96,22 @@ def get_MSD_user_history(MSD_user_filename, user_ID):
                 MSD_user_history.append(track_info)
 
     return MSD_user_history
+
+def get_MSD_track_ID_index(MSD_track_filename):
+    """Get track ID and index dictionary
+
+    :param MSD_track_filename: filename of MSD unique tracks
+    :return MSD_track_ID_index: track ID index dictionary
+    :rtype: dictionary
+    """
+
+    MSD_track_ID_index = dict()
+    count = 0
+    with io.open(MSD_track_filename,'r',encoding='utf8') as fp:
+        for line in fp:
+            contents = line.rstrip('\n').split("<SEP>")
+            if contents[0] not in MSD_track_ID_index:
+                MSD_track_ID_index[contents[0]] = count
+                count += 1
+
+    return MSD_track_ID_index
