@@ -16,12 +16,12 @@ require 'optim'   -- an optimization package, for online and batch methods
 
 savedir = '.\'
 optimization = 'CG'
-ParamaxIter = 50
-ParalearningRate = 0.001 
-ParaweightDecay = 0
-ParastartAveraging = 1
-Paramomentum = 0
-ParabatchSize = 100
+para.maxIter = 50
+para.learningRate = 0.001 
+para.weightDecay = 0
+para.startAveraging = 1
+para.momentum = 0
+para.batchSize = 100
 flagplot = false
 flagsave = false
 
@@ -49,31 +49,31 @@ print '==> configuring optimizer parameters'
 
 if optimization == 'CG' then
    optimState = {
-      maxIter = ParamaxIter
+      maxIter = para.maxIter
    }
    optimMethod = optim.cg
 
 elseif optimization == 'LBFGS' then
    optimState = {
-      learningRate = ParalearningRate,
-      maxIter = ParamaxIter,
+      learningRate = para.learningRate,
+      maxIter = para.maxIter,
       nCorrection = 10
    }
    optimMethod = optim.lbfgs
 
 elseif optimization == 'SGD' then
    optimState = {
-      learningRate = ParalearningRate,
-      weightDecay = ParaweightDecay,
-      momentum = Paramomentum,
+      learningRate = para.learningRate,
+      weightDecay = para.weightDecay,
+      momentum = para.momentum,
       learningRateDecay = 1e-7
    }
    optimMethod = optim.sgd
 
 elseif optimization == 'ASGD' then
    optimState = {
-      eta0 = ParalearningRate,
-      t0 = trsize * ParastartAveraging
+      eta0 = para.learningRate,
+      t0 = trsize * para.startAveraging
    }
    optimMethod = optim.asgd
 
@@ -100,15 +100,15 @@ function train()
 
    -- do one epoch, same as torch tutorial
    print('==> doing epoch on training data:')
-   print("==> online epoch # " .. epoch .. ' [batchSize = ' .. ParabatchSize .. ']')
-   for t = 1,trainData:size(),ParabatchSize do
+   print("==> online epoch # " .. epoch .. ' [batchSize = ' .. para.batchSize .. ']')
+   for t = 1,trainData:size(),para.batchSize do
       -- disp progress
       xlua.progress(t, trainData:size())
 
       -- create mini batch
       local inputs = {}
       local targets = {}
-      for i = t,math.min(t+ParabatchSize-1,trainData:size()) do
+      for i = t,math.min(t+para.batchSize-1,trainData:size()) do
          -- load new sample
          local input = trainData.data[shuffle[i]]
          local target = trainData.labels[shuffle[i]]
