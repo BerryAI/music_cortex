@@ -178,10 +178,10 @@ function train()
    end
 
    -- save/log current net
-   local filename = paths.concat(flagsave, 'model.net')
-   os.execute('mkdir -p ' .. sys.dirname(filename))
-   print('==> saving model to '..filename)
-   torch.save(filename, model)
+--   local filename = paths.concat(flagsave, 'model.net')
+--   os.execute('mkdir -p ' .. sys.dirname(filename))
+--   print('==> saving model to '..filename)
+--   torch.save(filename, model)
 
    -- next epoch
    confusion:zero()
