@@ -2,7 +2,8 @@
 -- This function defines the testing procedure
 -- and the log procedure
 --
--- 
+-- I: nil
+-- O: nil
 ----------------------------------------------------------------------
 
 require 'torch'   -- torch
@@ -10,10 +11,10 @@ require 'xlua'    -- use to display progress bars, not necessary
 require 'optim'   -- an optimization package, for online and batch methods
 
 ----------------------------------------------------------------------
-print '==> defining test procedure'
-
+--print '==> defining test procedure'
+--
 -- test function
-function test(para)
+function test()
    -- local vars
    local time = sys.clock()
 
