@@ -22,28 +22,29 @@ print '==> processing options'
 seed = 1 --fixed randomization
 torch.manualSeed(seed)
 
-para.savedir = './'
-para.optimization = 'CG'
-para.maxIter = 50
-para.learningRate = 0.001 
-para.weightDecay = 0
-para.startAveraging = 1
-para.momentum = 0
-para.batchSize = 100
-para.noutputs = 15
-para.plot = false
-para.save = false
+para = {savedir = "~/",
+		optimization = 'CG',
+		loss = 'mse',
+		maxIter = 50,
+		learningRate = 0.001 ,
+		weightDecay = 0,
+		startAveraging = 1,
+		momentum = 0,
+		batchSize = 100,
+		noutputs = 15,
+		plot = false,
+		save = false}
 
 ----------------------------------------------------------------------
 local matio = require 'matio'
 
 -- load a single array from file
-traindata.data = matio.load('traindata.mat', 'train_x')
-traindata.label = matio.load('traindata.mat', 'train_y')
-testdata.data = matio.load('testdata.mat', 'train_x')
-testdata.label = matio.load('testdata.mat', 'train_y')
---validdata.data = matio.load('validdata.mat', 'valid_x')
---validdata.label = matio.load('validdata.mat', 'valid_y')
+--trainData.data = matio.load('traindata.mat', 'train_x')
+--trainData.label = matio.load('traindata.mat', 'train_y')
+--testData.data = matio.load('testdata.mat', 'train_x')
+--testData.label = matio.load('testdata.mat', 'train_y')
+--validData.data = matio.load('validdata.mat', 'valid_x')
+--validData.label = matio.load('validdata.mat', 'valid_y')
 
 ----------------------------------------------------------------------
 print '==> defining the model'
@@ -55,10 +56,16 @@ defloss()
 print '==> here is the loss function:'
 print(criterion)
 
+-- classes 15
+classes = {'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'}
+
+-- This matrix records the current confusion across classes
+confusion = optim.ConfusionMatrix(classes)
+
 -- Log results to files
 print '==> defining some tools'
-trainLogger = optim.Logger(paths.concat(savedir, 'train.log'))
-testLogger = optim.Logger(paths.concat(savedir, 'test.log'))
+trainLogger = optim.Logger(paths.concat(para.savedir, 'train.log'))
+testLogger = optim.Logger(paths.concat(para.savedir, 'test.log'))
 
 -- Retrieve parameters and gradients:
 -- this extracts and flattens all the trainable parameters into a vector
@@ -77,7 +84,7 @@ criterion:cuda()
 ----------------------------------------------------------------------
 print '==> training!'
 
-while true do
+for i = 1,50 do
 	-- defining training procedure
 	train()
 	-- defining test procedure
