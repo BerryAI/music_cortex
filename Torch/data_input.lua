@@ -100,7 +100,7 @@ end
 ----------------------------------------------------------------------
 -- This function is used to convert text file into num Tensor
 -- 
--- 
+-- This is a by-product cuz i find it useless against txt written numbers
 -- I: <string>file path
 -- O: <tensor>data Tensor
 ----------------------------------------------------------------------
@@ -116,6 +116,10 @@ function loadData(dataFile)
   local i = 1
   for line in io.lines(dataFile) do
     local values = line:splitAtCommas()
+    local y = torch.Tensor(1)
+    y[1] = values[#values] -- the target class is the last number in the line
+    values[#values] = nil
+    local x = torch.Tensor(values) -- the input data is all the other numbers
     dataset[i] = torch.Tensor(values)
     i = i + 1
   end

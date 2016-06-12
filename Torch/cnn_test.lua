@@ -13,7 +13,7 @@ require 'optim'   -- an optimization package, for online and batch methods
 print '==> defining test procedure'
 
 -- test function
-function test()
+function test(para)
    -- local vars
    local time = sys.clock()
 
@@ -34,8 +34,7 @@ function test()
 
       -- get new sample
       local input = testData.data[t]
-      if opt.type == 'double' then input = input:double()
-      elseif opt.type == 'cuda' then input = input:cuda() end
+      input = input:cuda()
       local target = testData.labels[t]
 
       -- test sample
@@ -53,7 +52,7 @@ function test()
 
    -- update log/plot
    testLogger:add{['% mean class accuracy (test set)'] = confusion.totalValid * 100}
-   if opt.plot then
+   if para.plot then
       testLogger:style{['% mean class accuracy (test set)'] = '-'}
       testLogger:plot()
    end

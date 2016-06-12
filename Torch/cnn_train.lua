@@ -1,11 +1,11 @@
 ----------------------------------------------------------------------
+-- This file define the training function of CNN
 --
 --
 --
 --
---
---
---
+-- I: nil
+-- O: nil
 ----------------------------------------------------------------------
 
 require 'torch'   -- torch
@@ -14,7 +14,7 @@ require 'optim'   -- an optimization package, for online and batch methods
 
 ----------------------------------------------------------------------
 
-savedir = '.\'
+savedir = './'
 optimization = 'CG'
 para.maxIter = 50
 para.learningRate = 0.001 
