@@ -2,7 +2,6 @@
     front_back_tunnel.py
     ~~~
     This module build retrieving function from front end servers
-
     :auther: Alexander Z Wang
 """
 
@@ -14,7 +13,6 @@ import json
 
 def get_track_info_by_trackID(track_ID):
     """Get artist name + track name from track_ID
-
     :param track_ID: Track ID
     :return track_info: artist name + track name
     :rtype: lsit of string
@@ -36,7 +34,6 @@ def get_track_info_by_trackID(track_ID):
 
 def get_track_lastfm_tags(track_ID):
     """Get track tags from front end api
-
     :param track_ID: Track ID
     :return tags_list: list of tag tuples, (tag, counting)
     :rtype: list of tuples
@@ -52,8 +49,9 @@ def get_track_lastfm_tags(track_ID):
         return tags_list
     api_key = "c5e3f10d5180158b1e2b9a634bb83738"
     query_param = {"method": method, "artist": artist, "track": track, "api_key": api_key, "format": "json"}
+    for k, v in query_param.iteritems():
+        query_param[k] = unicode(v).encode('utf-8')
     url = base_url + urllib.urlencode(query_param)
-    print url
     response = urllib2.urlopen(url)
     data = json.load(response)
 
@@ -66,7 +64,6 @@ def get_track_lastfm_tags(track_ID):
 
 def get_initial_track_tags():
     """Get track tags for initial 10 songs
-
     :return tags_list: all tags for 10 songs
     :rtype: dictionary
     """
@@ -87,7 +84,6 @@ def get_initial_track_tags():
 
 def get_user_played_list_with_events(user_ID, **args):
     """Get user played list with events(like, disliked, etc)
-
     :param user_ID: user ID
     :param **args: arguments for calling api
         eventType: any values of [WTF, NotMyTaste, OK, Nice, LoveIt].
@@ -133,9 +129,8 @@ def get_user_played_list_with_events(user_ID, **args):
     return user_play_list
 
 
-def get_user_rate_front_end(user_ID):
+def get_user_rate_front_end(user_ID, timestamp_from=0):
     """Get user rate for each track ever listened from front end
-
     :param user_ID: user ID
     :return user_rate: rating score of each track ever listened
     :rtype: dictionary
@@ -143,27 +138,27 @@ def get_user_rate_front_end(user_ID):
 
     user_rate = dict()
 
-    user_play_list_wtf = get_user_played_list_with_events(user_ID, eventType = "WTF")
+    user_play_list_wtf = get_user_played_list_with_events(user_ID, eventType = "WTF", timestamp_from=0)
     for track in user_play_list_wtf:
         user_rate[track] = 1
 
-    user_play_list_nmt = get_user_played_list_with_events(user_ID, eventType = "NotMyTaste")
+    user_play_list_nmt = get_user_played_list_with_events(user_ID, eventType = "NotMyTaste", timestamp_from=0)
     for track in user_play_list_nmt:
         user_rate[track] = 2
 
-    user_play_list_okay = get_user_played_list_with_events(user_ID, eventType = "OK")
+    user_play_list_okay = get_user_played_list_with_events(user_ID, eventType = "OK", timestamp_from=0)
     for track in user_play_list_okay:
         user_rate[track] = 3
 
-    user_play_list_nice = get_user_played_list_with_events(user_ID, eventType = "Nice")
+    user_play_list_nice = get_user_played_list_with_events(user_ID, eventType = "Nice", timestamp_from=0)
     for track in user_play_list_nice:
         user_rate[track] = 4
 
-    user_play_list_love = get_user_played_list_with_events(user_ID, eventType = "LoveIt")
+    user_play_list_love = get_user_played_list_with_events(user_ID, eventType = "LoveIt", timestamp_from=0)
     for track in user_play_list_love:
         user_rate[track] = 5
 
-    user_play_list = get_user_played_list_with_events(user_ID)
+    user_play_list = get_user_played_list_with_events(user_ID, timestamp_from=0)
     for track in user_play_list:
         if track not in user_rate:
             user_rate[track] = 3

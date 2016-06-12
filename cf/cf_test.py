@@ -1,15 +1,20 @@
 #import * from collaborative_filter
 from front_back_tunnel import *
 from tell_user_taste import *
+
+import time
 import sqlite3
 
 ''' Tell USer Taste Test Part
-    user ticket: 5662329727352832
+      user ticket: 5662329727352832
 '''
 user_1 = "5662329727352832"
 print "user number is: ", user_1
-data = tell_user_taste(user_1)
+timestart = time.time()
+data = tell_user_taste(user_1, timestamp_from=0)
+timeend = time.time()
 print data
+print 'time elapsed: ', int(timeend - timestart), ' seconds'
 
 ''' End of the User Taste Test Part'''
 
@@ -17,10 +22,11 @@ print data
     You need to point out the path of subset_unique_tracks.txt
     and the base directory of data file, naming MillionSongSubset
 '''
-filename_subset = "path/subset_unique_tracks.txt"
-base_dir = "path/MillionSongSubset/data"
-data = get_acoustic_data(filename_subset, base_dir)
-print data
+# filename_subset = "path/subset_unique_tracks.txt"
+# tracks_filename = "path/full_log.txt"
+# base_dir = "path/MillionSongSubset/data"
+# data = get_acoustic_data_with_rate_matrix(user_log_filename, tracks_filename, base_dir)
+# print data
 
 ''' End of the User Taste Test Part'''
 
