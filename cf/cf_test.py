@@ -1,6 +1,7 @@
 #import * from collaborative_filter
 from front_back_tunnel import *
 from tell_user_taste import *
+from hidden_feature_prediction import *
 
 import time
 import sqlite3
@@ -8,13 +9,13 @@ import sqlite3
 ''' Tell USer Taste Test Part
       user ticket: 5662329727352832
 '''
-user_1 = "5662329727352832"
-print "user number is: ", user_1
-timestart = time.time()
-data = tell_user_taste(user_1, timestamp_from=0)
-timeend = time.time()
-print data
-print 'time elapsed: ', int(timeend - timestart), ' seconds'
+# user_1 = "5662329727352832"
+# print "user number is: ", user_1
+# timestart = time.time()
+# data = tell_user_taste(user_1, timestamp_from=0)
+# timeend = time.time()
+# print data
+# print 'time elapsed: ', int(timeend - timestart), ' seconds'
 
 ''' End of the User Taste Test Part'''
 
@@ -29,6 +30,15 @@ print 'time elapsed: ', int(timeend - timestart), ' seconds'
 # print data
 
 ''' End of the User Taste Test Part'''
+
+''' Hidden Feature Prediction Part
+'''
+user_IDs = ["user_000003", "user_000005"]
+prediction = get_user_prediction_SVD(user_IDs)
+print prediction
+
+''' End of the Hidden Feature Prediction Part'''
+
 
 
 #
