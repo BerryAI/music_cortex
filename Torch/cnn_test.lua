@@ -29,14 +29,14 @@ function test()
 
    -- test over test data
    print('==> testing on test set:')
-   for t = 1,testData:size() do
+   for t = 1,para.testNum do
       -- disp progress
-      xlua.progress(t, testData:size())
+      xlua.progress(t, para.testNum)
 
       -- get new sample
-      local input = testData.data[t]
+      local input = testData[t]
       input = input:cuda()
-      local target = testData.labels[t]
+      local target = testLabel[t]
 
       -- test sample
       local pred = model:forward(input)
@@ -45,7 +45,7 @@ function test()
 
    -- timing
    time = sys.clock() - time
-   time = time / testData:size()
+   time = time / para.testNum
    print("\n==> time to test 1 sample = " .. (time*1000) .. 'ms')
 
    -- print confusion matrix

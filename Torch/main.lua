@@ -24,13 +24,15 @@ torch.manualSeed(seed)
 
 para = {savedir = "~/",
 		optimization = 'CG',
-		loss = 'mse',
+		loss = 'nll',
+		trainNum = 20, --1200 in 1662
+		testNum = 20,   --462  in 1662
 		maxIter = 50,
 		learningRate = 0.001 ,
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
-		batchSize = 100,
+		batchSize = 5, --100
 		noutputs = 15,
 		plot = false,
 		save = false}
@@ -39,6 +41,14 @@ para = {savedir = "~/",
 local matio = require 'matio'
 
 -- load a single array from file
+local rawData = matio.load('cnn_features.mat', 'cnn_features')
+local rawLabel = matio.load('cnn_labels.mat', 'cnn_labels')
+
+trainData = (rawData:sub(1,para.trainNum)):clone()
+testData = (rawData:sub(para.trainNum+1,para.trainNum+para.testNum)):clone()
+trainLabel = (rawLabel:sub(1,para.trainNum)):clone()
+testLabel = (rawLabel:sub(para.trainNum+1,para.trainNum+para.testNum)):clone()
+
 --trainData.data = matio.load('traindata.mat', 'train_x')
 --trainData.label = matio.load('traindata.mat', 'train_y')
 --testData.data = matio.load('testdata.mat', 'train_x')
@@ -49,7 +59,7 @@ local matio = require 'matio'
 ----------------------------------------------------------------------
 print '==> defining the model'
 -- define model
-model = cnn_model()
+cnn_model()
 
 -- define loss function
 defloss()
@@ -66,12 +76,6 @@ confusion = optim.ConfusionMatrix(classes)
 print '==> defining some tools'
 trainLogger = optim.Logger(paths.concat(para.savedir, 'train.log'))
 testLogger = optim.Logger(paths.concat(para.savedir, 'test.log'))
-
--- Retrieve parameters and gradients:
--- this extracts and flattens all the trainable parameters into a vector
---if model then
---   parameters,gradParameters = model:getParameters()
---end
 
 -- configuring optimizer parameters
 optzset()
@@ -92,6 +96,6 @@ for i = 1,50 do
 end
 
 -- save training result and logger
-matio.save('cnn1.mat',model)
-matio.save('log1.mat',trainLogger)
+--matio.save('cnn1.mat',model)
+--matio.save('log1.mat',trainLogger)
 -- there might be many other things need to be stored

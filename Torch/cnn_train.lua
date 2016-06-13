@@ -39,7 +39,7 @@ function optzset()
 	elseif para.optimization == 'ASGD' then
 	   optimState = {
 	      eta0 = para.learningRate,
-	      t0 = trsize * para.startAveraging
+	      t0 = para.trainNum * para.startAveraging
 	   }
 	   optimMethod = optim.asgd
 	
@@ -62,22 +62,28 @@ function train()
 	model:training()
 
 	-- shuffle at each epoch
-	shuffle = torch.randperm(trsize)
+	shuffle = torch.randperm(para.trainNum)
+	
+	-- Retrieve parameters and gradients:
+	-- this extracts and flattens all the trainable parameters into a vector
+	if model then
+	   parameters,gradParameters = model:getParameters()
+	end
 
 	-- do one epoch, same as torch tutorial
 	print('==> doing epoch on training data:')
 	print("==> online epoch # " .. epoch .. ' [batchSize = ' .. para.batchSize .. ']')
-	for t = 1,trainData:size(),para.batchSize do
+	for t = 1,para.trainNum,para.batchSize do
 		-- disp progress
-		xlua.progress(t, trainData:size())
+		xlua.progress(t, para.trainNum)
 
 		-- create mini batch
 		local inputs = {}
 		local targets = {}
-		for i = t,math.min(t+para.batchSize-1,trainData:size()) do
+		for i = t,math.min(t+para.batchSize-1,para.trainNum) do
 			-- load new sample
-			local input = trainData.data[shuffle[i]]
-			local target = trainData.labels[shuffle[i]]
+			local input = trainData[shuffle[i]]
+			local target = trainLabel[shuffle[i]]
 			input = input:cuda();
 			target = target:cuda()
 			table.insert(inputs, input)
@@ -86,39 +92,39 @@ function train()
 
 		-- create closure to evaluate f(X) and df/dX
 		local feval = function(x)
-			-- get new parameters
-			if x ~= parameters then
-				parameters:copy(x)
+				-- get new parameters
+				if x ~= parameters then
+					parameters:copy(x)
+				end
+	
+				-- reset gradients
+				gradParameters:zero()
+	
+				-- f is the average of all criterions
+				local f = 0
+	
+				-- evaluate function for complete mini batch
+				for i = 1,#inputs do
+					-- estimate f
+					local output = model:forward(inputs[i])
+					local err = criterion:forward(output, targets[i])
+					f = f + err
+	
+					-- estimate df/dW
+					local df_do = criterion:backward(output, targets[i])
+					model:backward(inputs[i], df_do)
+	
+					-- update confusion
+					confusion:add(output, targets[i])
+				end
+	
+				-- normalize gradients and f(X)
+				gradParameters:div(#inputs)
+				f = f/#inputs
+	
+				-- return f and df/dX
+				return f,gradParameters
 			end
-
-			-- reset gradients
-			gradParameters:zero()
-
-			-- f is the average of all criterions
-			local f = 0
-
-			-- evaluate function for complete mini batch
-			for i = 1,#inputs do
-				-- estimate f
-				local output = model:forward(inputs[i])
-				local err = criterion:forward(output, targets[i])
-				f = f + err
-
-				-- estimate df/dW
-				local df_do = criterion:backward(output, targets[i])
-				model:backward(inputs[i], df_do)
-
-				-- update confusion
-				confusion:add(output, targets[i])
-			end
-
-			-- normalize gradients and f(X)
-			gradParameters:div(#inputs)
-			f = f/#inputs
-
-			-- return f and df/dX
-			return f,gradParameters
-		end
 
 		-- optimize on current mini-batch
 		if optimMethod == optim.asgd then
@@ -130,7 +136,7 @@ function train()
 
 	-- time taken
 	time = sys.clock() - time
-	time = time / trainData:size()
+	time = time / para.trainNum
 	print("\n==> time to learn 1 sample = " .. (time*1000) .. 'ms')
 
 	-- print confusion matrix

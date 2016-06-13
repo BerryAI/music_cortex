@@ -2,38 +2,44 @@
 -- This file defines the model of CNN
 --
 -- I: nil
--- O: <Sequentail> model
+-- O: nil
 ----------------------------------------------------------------------
 
+require 'nn'
 require 'cunn'
+require 'dp'
 
 ----------------------------------------------------------------------
 
 function cnn_model()
-   local model = nn.Sequential() 
-   
+   model = nn.Sequential() 
    -- convolution layers
-   model:add(nn.SpatialConvolutionMM(1, 1, 5, 5, 1, 1))
+   model:add(nn.SpatialConvolution(2, 10, 5, 5))
    model:add(nn.ReLU())
---   model:add(nn.SpatialMaxPooling(2, 2, 2, 2))
+   model:add(nn.SpatialMaxPooling(1, 2, 1, 2))
    
-   model:add(nn.SpatialConvolutionMM(1, 2, 5, 5, 1, 1))
+   model:add(nn.SpatialConvolution(10, 10, 5, 5))
    model:add(nn.ReLU())
---   model:add(nn.SpatialMaxPooling(2, 2, 2, 2))
+   model:add(nn.SpatialMaxPooling(1, 2, 1, 2))
    
-   model:add(nn.SpatialConvolutionMM(128, 256, 4, 4, 1, 1))
+   model:add(nn.SpatialConvolution(10, 20, 4, 5))
    model:add(nn.ReLU())
+   model:add(nn.SpatialMaxPooling(1, 2, 1, 2))
    
    -- fully connected layers
-   model:add(nn.SpatialConvolutionMM(256, 256, 2, 2, 1, 1))
-   model:add(nn.ReLU())
 --   model:add(nn.Dropout(0.5))
-   model:add(nn.SpatialConvolutionMM(256, 15, 1, 1, 1, 1))
+   outsize = model:outside{3,2,100,12} -- output size of convolutions
+   model:add(nn.Collapse(3))
+   model:add(nn.Linear(outsize[2]*outsize[3]*outsize[4], 64))
+
+   model:add(nn.Linear(64,128))
    
-   model:add(nn.Reshape(15))
+   model:add(nn.Linear(128,128))
+   
+   model:add(nn.Linear(128,15))
    model:add(nn.SoftMax())
    
-   return model
+--   return model
 end
 
 ----------------------------------------------------------------------

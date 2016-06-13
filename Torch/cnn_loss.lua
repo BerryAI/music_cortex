@@ -34,25 +34,25 @@ function defloss()
 		criterion = nn.MSECriterion()
 		criterion.sizeAverage = false
 	
-		if trainData then
-			-- convert training labels:
-			local trsize = (#trainData.labels)[1]
-			local trlabels = torch.Tensor( trsize, para.noutputs )
-			trlabels:fill(-1)
-			for i = 1,trsize do
-				trlabels[{ i,trainData.labels[i] }] = 1
-			end
-			trainData.labels = trlabels
-	
-			-- convert test labels
-			local tesize = (#testData.labels)[1]
-			local telabels = torch.Tensor( tesize, para.noutputs )
-			telabels:fill(-1)
-			for i = 1,tesize do
-				telabels[{ i,testData.labels[i] }] = 1
-			end
-			testData.labels = telabels
-		end
+--		if trainData then
+--			-- convert training labels:
+--			local trsize = (#trainData.labels)[1]
+--			local trlabels = torch.Tensor( trsize, para.noutputs )
+--			trlabels:fill(-1)
+--			for i = 1,trsize do
+--				trlabels[{ i,trainData.labels[i] }] = 1
+--			end
+--			trainData.labels = trlabels
+--	
+--			-- convert test labels
+--			local tesize = (#testData.labels)[1]
+--			local telabels = torch.Tensor( tesize, para.noutputs )
+--			telabels:fill(-1)
+--			for i = 1,tesize do
+--				telabels[{ i,testData.labels[i] }] = 1
+--			end
+--			testData.labels = telabels
+--		end
 	
 	else
 	
