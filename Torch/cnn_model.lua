@@ -37,7 +37,7 @@ function cnn_model()
    model:add(nn.Linear(128,128))
    
    model:add(nn.Linear(128,15))
-   model:add(nn.SoftMax())
+--   model:add(nn.SoftMax())
    
 --   return model
 end

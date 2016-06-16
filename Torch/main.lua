@@ -24,9 +24,9 @@ torch.manualSeed(seed)
 
 para = {savedir = "~/",
 		optimization = 'CG',
-		loss = 'nll',
-		trainNum = 20, --1200 in 1662
-		testNum = 20,   --462  in 1662
+		loss = 'mse', -- mean square error
+		trainNum = 20, -- 1200 in 1662
+		testNum = 20, -- 462  in 1662
 		maxIter = 50,
 		learningRate = 0.001 ,
 		weightDecay = 0,
@@ -62,7 +62,7 @@ print '==> defining the model'
 cnn_model()
 
 -- define loss function
-defloss()
+cnn_loss()
 print '==> here is the loss function:'
 print(criterion)
 
