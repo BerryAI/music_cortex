@@ -8,9 +8,6 @@ import json
 import operator
 from front_back_tunnel import *
 
-import operator
-from front_back_tunnel import get_user_rate_front_end, get_track_lastfm_tags
-
 DEBUG = False
 
 def tell_user_taste(user_ID, **args):
@@ -20,7 +17,12 @@ def tell_user_taste(user_ID, **args):
     :rtype: JSON string
     """
 
+    if user_ID == '':
+        user_taste = {"error": "User ID not exist"}
+        return json.dumps(user_taste)
+
     user_play_list = get_user_played_list_with_events(user_ID, **args)
+    print len(user_play_list)
     if len(user_play_list) > 10:
         user_taste = tell_user_taste_later(user_ID)
     else:

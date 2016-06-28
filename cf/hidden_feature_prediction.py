@@ -130,6 +130,12 @@ def get_track_rating_from_history(user_track_timestamp_MSD):
     return user_rate_dict
 
 def full_rating_matrix_with_index(user_rate_dict):
+    """Get full rating matrix with song index at each row
+
+    :param user_rate_dict: user rate score dictionary (sparse)
+    :return rating_matrix: full matrix of rating scores
+    :rtype: dictionary
+    """
 
     user_index = dict()
     song_index = dict()
@@ -148,14 +154,96 @@ def full_rating_matrix_with_index(user_rate_dict):
     rating_matrix = [None]*len(user_index)
 
     for user in user_rate_dict:
-        rating_vector = [0] * len(song_index)
+        rating_vector = [0.0] * len(song_index)
         for track_key in user_rate_dict[user]:
             rating_vector[song_index[track_key]] = user_rate_dict[user][track_key]
         rating_matrix[user_index[user]] = rating_vector
 
     rating_matrix = numpy.array(rating_matrix)
-
+    matrix_update_by_song_mean_rate(rating_matrix)
     return user_index, song_index, rating_matrix
+
+def matrix_update_by_song_neighbours(rating_matrix, user_rate_dict, user_index, song_index):
+    """Update rating score with nearest neighbours
+
+    :param rating_matrix: full matrix of rating scores
+    """
+    filename = "similar_user_weight.txt"
+    user_knn_dict = read_neighbours(similar_weight_user_filename, 3)
+    user_rate_pred_dict = dict()
+
+    for user in user_rate_dict:
+        user_rate_pred_dict[user] = []
+        user_play_list = [x[0] for x in user_rate_pred_dict[user]]
+        user_mean_rate = numpy.mean([x[1] for x in user_rate_pred_dict[user]])
+        overall_weight = 0
+        for value in user_knn_dict[user]:
+            other_user = value[0]
+            weight = value[1]
+            overall_weight += weight
+            for pair in user_rate_dict[other_user]:
+
+
+def read_neighbours(filename, k):
+    """Read user's most k similar neighbours from file
+
+    :param filename: filename of neighbours' information
+    :param k: number of similar users
+    :return user_knn_dict: each user's k most similar neighbours
+    :rtype: dictionary
+    """
+
+    user_knn_dict = dict()
+    with io.open(filename,'r') as fp:
+        for line in fp:
+            contents = line.rstrip("\n").split("<SEP>")
+            tmp = []
+            for i in range(0,k):
+                values = contents[i+1].split(',')
+                weight_and_neighbour = (values[0], float(values[1]))
+                tmp.append(weight_and_neighbour)
+            user_knn_dict[contents[0]] = tmp
+
+    return user_knn_dict
+
+def matrix_update_by_song_mean_rate(rating_matrix):
+    """Update rating score with average score
+
+    :param rating_matrix: full matrix of rating scores
+    """
+
+    for i in range(0, len(rating_matrix[0])):
+        index = rating_matrix[:,i] > 0
+        ave_score = float(numpy.sum(rating_matrix[:,i])) / float(numpy.sum(index))
+        for j in range(0, len(rating_matrix)):
+            if rating_matrix[j][i] == 0.0:
+                rating_matrix[j][i] = ave_score
+
+def get_hidden_feature_matrix(user_log_intersection_filename, tracks_filename, base_dir, k):
+    """Get CNN training data by user ID
+
+    :param filename: filename of unique MSD tracks
+    :param tracks_filename: filename of all unique tracks
+    :param base_dir: base directory of data
+    :return data: hidden feature dataset
+    :rtype: ndarray
+    """
+
+    unique_tracks_info_dict = read_tracks_database(tracks_filename)
+    inv_unique_tracks_info_dict = {v: k for k, v in unique_tracks_info_dict.items()}
+    MSD_track_ID_dict = get_MSD_track_id_dictionary(tracks_filename, unique_tracks_info_dict)
+
+    user_log_MSD, user_track_timestamp_MSD = read_intersect_user_log(user_log_intersection_filename, unique_tracks_info_dict)
+    user_rate_dict = get_track_rating_from_history(user_track_timestamp_MSD)
+    user_index, song_index, rating_matrix = full_rating_matrix_with_index(user_rate_dict)
+
+    U, s, V = numpy.linalg.svd(rating_matrix, full_matrices=True)
+
+    V_bar = V[0:k]
+    for i in range(0,k):
+        V_bar[i] = numpy.sqrt(s[i])* V_bar[i]
+
+    return V_bar.T
 
 def get_acoustic_data_with_rate_matrix(user_log_intersection_filename, tracks_filename, base_dir):
     """Get CNN training data by user ID
@@ -233,13 +321,14 @@ def get_user_prediction_SVD(user_IDs):
     base_dir = "../data"
 
     prediction = dict()
+    history = dict()
+    user = dict()
 
     unique_tracks_info_dict = read_tracks_database(filename_subset)
     inv_unique_tracks_info_dict = {v: k for k, v in unique_tracks_info_dict.items()}
     MSD_track_ID_dict = get_MSD_track_id_dictionary(filename_subset, unique_tracks_info_dict)
 
     user_log_MSD, user_track_timestamp_MSD = read_intersect_user_log(user_log_intersection_filename, unique_tracks_info_dict)
-
     user_rate_dict = get_track_rating_from_history(user_track_timestamp_MSD)
     user_index, song_index, rating_matrix = full_rating_matrix_with_index(user_rate_dict)
     inv_song_index_dict = {v: k for k, v in song_index.items()}
@@ -257,6 +346,8 @@ def get_user_prediction_SVD(user_IDs):
         user_IDs = [user_IDs]
 
     for user_ID in user_IDs:
+        user[user_ID] = dict()
+        user_his = []
         user_pred = []
         output_vector = U_bar.dot(V_bar)[user_index[user_ID]].tolist()
         index = sorted(range(len(output_vector)), key=output_vector.__getitem__, reverse=True)
@@ -269,6 +360,22 @@ def get_user_prediction_SVD(user_IDs):
             count += 1
             if count > 9:
                 break
-        prediction[user_ID] = user_pred
+        for value in user_log_MSD[user_ID]:
+            user_his.append(inv_unique_tracks_info_dict[value])
 
-    return prediction
+        user[user_ID]["recommendation"] = user_pred
+        user[user_ID]["history"] = user_his
+
+
+    return user
+
+filename_subset = "subset_unique_tracks.txt"
+tracks_filename = "full_log.txt"
+base_dir = "../data"
+# Hidden feature number k
+k = 5
+hidden_feature = get_hidden_feature_matrix(tracks_filename, filename_subset, base_dir, k)
+
+hist, bin_edges = numpy.histogram(hidden_feature, bins=20)
+print hist
+print bin_edges

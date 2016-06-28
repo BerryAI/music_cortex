@@ -55,10 +55,17 @@ def get_track_lastfm_tags(track_ID):
     response = urllib2.urlopen(url)
     data = json.load(response)
 
+    if "error" in data:
+        return tags_list
+        
+    count = 1
     if data is not []:
         for value in data["toptags"]["tag"]:
             tmp = (value["name"], value["count"])
             tags_list.append(tmp)
+            count += 1
+            if count > 7:
+                break
 
     return tags_list
 

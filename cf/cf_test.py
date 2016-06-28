@@ -9,7 +9,7 @@ import sqlite3
 ''' Tell USer Taste Test Part
       user ticket: 5662329727352832
 '''
-# user_1 = "5662329727352832"
+# user_1 = "5762529972191232"
 # print "user number is: ", user_1
 # timestart = time.time()
 # data = tell_user_taste(user_1, timestamp_from=0)
