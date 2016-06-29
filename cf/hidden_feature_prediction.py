@@ -182,6 +182,7 @@ def matrix_update_by_song_neighbours(rating_matrix, user_rate_dict, user_index, 
             weight = value[1]
             overall_weight += weight
             for pair in user_rate_dict[other_user]:
+                pass
 
 
 def read_neighbours(filename, k):
