@@ -1,22 +1,61 @@
 #import * from collaborative_filter
 from front_back_tunnel import *
+from tell_user_taste import *
+from hidden_feature_prediction import *
+
+import time
 import sqlite3
 
+''' Tell USer Taste Test Part
+      user ticket: 5662329727352832
+'''
+# user_1 = "5762529972191232"
+# print "user number is: ", user_1
+# timestart = time.time()
+# data = tell_user_taste(user_1, timestamp_from=0)
+# timeend = time.time()
+# print data
+# print 'time elapsed: ', int(timeend - timestart), ' seconds'
 
-filename = "unique_tracks.txt"
-filename_subset = "subset_unique_tracks.txt"
-filename_test = "test.txt"
-user_log_filename_test = "user_log_test.txt"
-user_log_filename = "userid-timestamp-artid-artname-traid-traname.tsv"
-user_log_filename_small = "userid-timestamp-artid-artname-traid-traname_small.tsv"
-user_log_final_filename_small = "final_log_small.txt"
-user_log_intersection = "full_log.txt"
-similar_user_filename = "similar_user.txt"
-similar_weight_user_filename = "similar_user_weight.txt"
-k = 5
-max_k = 10
-recommended_num = 100
-time_format = "%Y-%m-%dT%H:%M:%SZ"
+''' End of the User Taste Test Part'''
+
+''' Get acoustic data Part
+    You need to point out the path of subset_unique_tracks.txt
+    and the base directory of data file, naming MillionSongSubset
+'''
+# filename_subset = "path/subset_unique_tracks.txt"
+# tracks_filename = "path/full_log.txt"
+# base_dir = "path/MillionSongSubset/data"
+# data = get_acoustic_data_with_rate_matrix(user_log_filename, tracks_filename, base_dir)
+# print data
+
+''' End of the User Taste Test Part'''
+
+''' Hidden Feature Prediction Part
+'''
+user_IDs = ["user_000003", "user_000005"]
+prediction = get_user_prediction_SVD(user_IDs)
+print prediction
+
+''' End of the Hidden Feature Prediction Part'''
+
+
+
+#
+# filename = "unique_tracks.txt"
+# filename_subset = "subset_unique_tracks.txt"
+# filename_test = "test.txt"
+# user_log_filename_test = "user_log_test.txt"
+# user_log_filename = "userid-timestamp-artid-artname-traid-traname.tsv"
+# user_log_filename_small = "userid-timestamp-artid-artname-traid-traname_small.tsv"
+# user_log_final_filename_small = "final_log_small.txt"
+# user_log_intersection = "full_log.txt"
+# similar_user_filename = "similar_user.txt"
+# similar_weight_user_filename = "similar_user_weight.txt"
+# k = 5
+# max_k = 10
+# recommended_num = 100
+# time_format = "%Y-%m-%dT%H:%M:%SZ"
 
 # data = get_track_info_by_trackID(29903689)
 # print data
@@ -24,7 +63,9 @@ time_format = "%Y-%m-%dT%H:%M:%SZ"
 # data = get_track_tags_front_end(29903619)
 # print data
 
-get_user_played_list_with_events("user_1", eventType="best", b=2, c=3)
+# user_1 = "5629499534213120"
+# data = get_user_played_list_with_events(user_1, eventType="NotMyTaste")
+# print data
 
 # dbfile = "lastfm_tags.db"
 #
