@@ -184,7 +184,6 @@ def matrix_update_by_song_neighbours(rating_matrix, user_rate_dict, user_index, 
             for pair in user_rate_dict[other_user]:
                 pass
 
-
 def read_neighbours(filename, k):
     """Read user's most k similar neighbours from file
 
@@ -220,7 +219,7 @@ def matrix_update_by_song_mean_rate(rating_matrix):
             if rating_matrix[j][i] == 0.0:
                 rating_matrix[j][i] = ave_score
 
-def get_hidden_feature_matrix(user_log_intersection_filename, tracks_filename, base_dir, k):
+def get_hidden_feature_matrix_SVD(user_log_intersection_filename, tracks_filename, base_dir, k):
     """Get CNN training data by user ID
 
     :param filename: filename of unique MSD tracks
@@ -245,6 +244,199 @@ def get_hidden_feature_matrix(user_log_intersection_filename, tracks_filename, b
         V_bar[i] = numpy.sqrt(s[i])* V_bar[i]
 
     return V_bar.T
+
+def update_residue(rating_matrix, rate_bar):
+    residue = rating_matrix - rate_bar
+    index = (rating_matrix == 0)
+    residue[index] = 0
+    return residue
+
+
+def stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
+    """Stochastic Gradient Descent method
+
+    :param rating_matrix: filename of unique MSD tracks
+    :param lean_rate: learner rate
+    :param lambda_rate: lambda rate
+    :param k: number of hidden features
+    :return user_weight: user weight matrix
+    :return hidden_feature: hidden_feature_matrix
+    :rtype: ndarray
+    """
+
+    residue = numpy.copy(rating_matrix)
+
+    res_norm_old = numpy.linalg.norm(residue)
+    res_norm_new = res_norm_old
+
+    m = len(rating_matrix)
+    n = len(rating_matrix[0])
+
+    user_weight = numpy.zeros((m,k))
+    hidden_feature = numpy.zeros((n,k))
+
+    user_weight.fill(.1)
+    hidden_feature.fill(.1)
+
+    for h in range (0, max_iter):
+        user_weight[0,:] = (1-lean_rate*lambda_rate)*user_weight[0,:] + \
+                           lean_rate*residue[0,0]*hidden_feature[0,:]
+        hidden_feature[0,:] = (1-lean_rate*lambda_rate)*hidden_feature[0,:] + \
+                              lean_rate*residue[0,0]*user_weight[0,:]
+        for i in range(1, min(m,n)):
+            user_weight[i,:] = (1-lean_rate*lambda_rate)*user_weight[i,:] + \
+                               lean_rate*residue[i,i-1]*hidden_feature[i-1,:]
+            hidden_feature[i,:] = (1-lean_rate*lambda_rate)*hidden_feature[i,:] + \
+                                  lean_rate*residue[i,i]*user_weight[i,:]
+        if m > n:
+            for i in range(0,m-n):
+                user_weight[n+i,:] = (1-lean_rate*lambda_rate)*user_weight[n+i,:] + \
+                                   lean_rate*residue[n+i,n-1]*hidden_feature[n-1,:]
+        if n > m:
+            for i in range(0, n-m):
+                hidden_feature[i+m,:] = (1-lean_rate*lambda_rate)*hidden_feature[i+m,:] + \
+                                      lean_rate*residue[m-1,m+i]*user_weight[m-1,:]
+
+        rate_bar = user_weight.dot(hidden_feature.T)
+        residue = update_residue(rating_matrix, rate_bar)
+        res_norm_new = numpy.linalg.norm(residue)
+        if h > 1 and res_norm_new > res_norm_old:
+            break
+        res_norm_old = res_norm_new
+
+
+    print h, res_norm_old
+
+    return user_weight, hidden_feature
+
+
+def batch_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
+    """Stochastic Gradient Descent method
+
+    :param rating_matrix: filename of unique MSD tracks
+    :param lean_rate: learner rate
+    :param lambda_rate: lambda rate
+    :param k: number of hidden features
+    :return user_weight: user weight matrix
+    :return hidden_feature: hidden_feature_matrix
+    :rtype: ndarray
+    """
+
+    residue = numpy.copy(rating_matrix)
+
+    res_norm_old = numpy.linalg.norm(residue)
+    res_norm_new = res_norm_old
+
+    m = len(rating_matrix)
+    n = len(rating_matrix[0])
+
+    user_weight = numpy.zeros((m,k))
+    hidden_feature = numpy.zeros((n,k))
+
+    columns = (residue != 0).sum(0)
+    rows    = (residue != 0).sum(1)
+    diag_n = numpy.diag(1 - lean_rate*lambda_rate*columns)
+    diag_m = numpy.diag(1 - lean_rate*lambda_rate*rows)
+
+    user_weight.fill(.1)
+    hidden_feature.fill(.1)
+
+    for h in range (0, max_iter):
+        user_weight = diag_m.dot(user_weight)
+        user_weight += lean_rate * numpy.dot(residue,hidden_feature)
+        print user_weight.tolist()
+        hidden_feature = diag_n.dot(hidden_feature)
+        hidden_feature += lean_rate * residue.T.dot(user_weight)
+        rate_bar = user_weight.dot(hidden_feature.T)
+        residue = update_residue(rating_matrix, rate_bar)
+        res_norm_new = numpy.linalg.norm(residue)
+        print h, res_norm_new
+        if res_norm_old < 1.0:
+            break
+        res_norm_old = res_norm_new
+
+    print h, res_norm_old
+
+    return user_weight, hidden_feature
+
+
+def vanilla_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
+    """Stochastic Gradient Descent method
+
+    :param rating_matrix: filename of unique MSD tracks
+    :param lean_rate: learner rate
+    :param lambda_rate: lambda rate
+    :param k: number of hidden features
+    :return user_weight: user weight matrix
+    :return hidden_feature: hidden_feature_matrix
+    :rtype: ndarray
+    """
+
+    R = rating_matrix
+
+    N = len(R)
+    M = len(R[0])
+    K = k
+
+
+    P = numpy.random.rand(N,k)
+    Q = numpy.random.rand(M,k)
+
+    nP, nQ = matrix_factorization(R, P, Q, K, max_iter, lean_rate, lambda_rate)
+
+    return nP, nQ
+
+
+
+def matrix_factorization(R, P, Q, K, steps, alpha, beta):
+    Q = Q.T
+    for step in xrange(steps):
+        for i in xrange(len(R)):
+            for j in xrange(len(R[i])):
+                if R[i][j] > 0:
+                    eij = R[i][j] - numpy.dot(P[i,:],Q[:,j])
+                    for k in xrange(K):
+                        P[i][k] = P[i][k] + alpha * (2 * eij * Q[k][j] - beta * P[i][k])
+                        Q[k][j] = Q[k][j] + alpha * (2 * eij * P[i][k] - beta * Q[k][j])
+        eR = numpy.dot(P,Q)
+        e = 0
+        for i in xrange(len(R)):
+            for j in xrange(len(R[i])):
+                if R[i][j] > 0:
+                    e = e + pow(R[i][j] - numpy.dot(P[i,:],Q[:,j]), 2)
+                    for k in xrange(K):
+                        e = e + (beta/2) * (pow(P[i][k],2) + pow(Q[k][j],2))
+        if e < 0.001:
+            break
+    return P, Q.T
+
+
+
+
+
+def get_hidden_feature_matrix_SGD(user_log_intersection_filename, tracks_filename, base_dir, k, lean_rate, lambda_rate, max_iter):
+    """Get hidden feature matrix by stochastic gradient descent method
+
+    :param filename: filename of unique MSD tracks
+    :param tracks_filename: filename of all unique tracks
+    :param base_dir: base directory of data
+    :return data: hidden feature dataset
+    :rtype: ndarray
+    """
+
+    unique_tracks_info_dict = read_tracks_database(tracks_filename)
+    inv_unique_tracks_info_dict = {v: k for k, v in unique_tracks_info_dict.items()}
+    MSD_track_ID_dict = get_MSD_track_id_dictionary(tracks_filename, unique_tracks_info_dict)
+
+    user_log_MSD, user_track_timestamp_MSD = read_intersect_user_log(user_log_intersection_filename, unique_tracks_info_dict)
+    user_rate_dict = get_track_rating_from_history(user_track_timestamp_MSD)
+    user_index, song_index, rating_matrix = full_rating_matrix_with_index(user_rate_dict)
+
+    print "SGD starts"
+
+    user_weight, hidden_feature = batch_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
+
+    return user_weight, hidden_feature
 
 def get_acoustic_data_with_rate_matrix(user_log_intersection_filename, tracks_filename, base_dir):
     """Get CNN training data by user ID
@@ -370,13 +562,19 @@ def get_user_prediction_SVD(user_IDs):
 
     return user
 
-filename_subset = "subset_unique_tracks.txt"
-tracks_filename = "full_log.txt"
-base_dir = "../data"
-# Hidden feature number k
-k = 5
-hidden_feature = get_hidden_feature_matrix(tracks_filename, filename_subset, base_dir, k)
-
-hist, bin_edges = numpy.histogram(hidden_feature, bins=20)
-print hist
-print bin_edges
+# filename_subset = "subset_unique_tracks.txt"
+# tracks_filename = "full_log.txt"
+# base_dir = "../data"
+#  # Hidden feature number k98
+# k = 5
+# lean_rate = 0.001
+# lambda_rate = 0.02
+# max_iter = 3
+# #hidden_feature = get_hidden_feature_matrix_SVD(tracks_filename, filename_subset, base_dir, k)
+#
+# user, feature = get_hidden_feature_matrix_SGD(tracks_filename, filename_subset, base_dir, k, lean_rate, lambda_rate, max_iter)
+#
+#
+# hist, bin_edges = numpy.histogram(feature, bins=20)
+# print hist
+# print bin_edges
