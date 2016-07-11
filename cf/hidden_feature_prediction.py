@@ -264,48 +264,33 @@ def stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
     :rtype: ndarray
     """
 
-    residue = numpy.copy(rating_matrix)
-
-    res_norm_old = numpy.linalg.norm(residue)
-    res_norm_new = res_norm_old
-
     m = len(rating_matrix)
     n = len(rating_matrix[0])
 
-    user_weight = numpy.zeros((m,k))
-    hidden_feature = numpy.zeros((n,k))
+    user_weight = numpy.random.rand(m,k)
+    hidden_feature = numpy.random.rand(n,k)
 
-    user_weight.fill(.1)
-    hidden_feature.fill(.1)
+    rate_bar = user_weight.dot(hidden_feature.T)
+    residue = update_residue(rating_matrix, rate_bar)
+
+    res_norm = numpy.linalg.norm(residue)
 
     for h in range (0, max_iter):
-        user_weight[0,:] = (1-lean_rate*lambda_rate)*user_weight[0,:] + \
-                           lean_rate*residue[0,0]*hidden_feature[0,:]
-        hidden_feature[0,:] = (1-lean_rate*lambda_rate)*hidden_feature[0,:] + \
-                              lean_rate*residue[0,0]*user_weight[0,:]
-        for i in range(1, min(m,n)):
-            user_weight[i,:] = (1-lean_rate*lambda_rate)*user_weight[i,:] + \
-                               lean_rate*residue[i,i-1]*hidden_feature[i-1,:]
-            hidden_feature[i,:] = (1-lean_rate*lambda_rate)*hidden_feature[i,:] + \
-                                  lean_rate*residue[i,i]*user_weight[i,:]
-        if m > n:
-            for i in range(0,m-n):
-                user_weight[n+i,:] = (1-lean_rate*lambda_rate)*user_weight[n+i,:] + \
-                                   lean_rate*residue[n+i,n-1]*hidden_feature[n-1,:]
-        if n > m:
-            for i in range(0, n-m):
-                hidden_feature[i+m,:] = (1-lean_rate*lambda_rate)*hidden_feature[i+m,:] + \
-                                      lean_rate*residue[m-1,m+i]*user_weight[m-1,:]
+
+        user_weight = lean_rate*residue.dot(hidden_feature) + user_weight
 
         rate_bar = user_weight.dot(hidden_feature.T)
         residue = update_residue(rating_matrix, rate_bar)
-        res_norm_new = numpy.linalg.norm(residue)
-        if h > 1 and res_norm_new > res_norm_old:
+
+        hidden_feature = lean_rate*residue.T.dot(user_weight) + hidden_feature
+
+        rate_bar = user_weight.dot(hidden_feature.T)
+        residue = update_residue(rating_matrix, rate_bar)
+
+        res_norm = numpy.linalg.norm(residue)
+
+        if res_norm < 0.01:
             break
-        res_norm_old = res_norm_new
-
-
-    print h, res_norm_old
 
     return user_weight, hidden_feature
 
@@ -434,7 +419,7 @@ def get_hidden_feature_matrix_SGD(user_log_intersection_filename, tracks_filenam
 
     print "SGD starts"
 
-    user_weight, hidden_feature = batch_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
+    user_weight, hidden_feature = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
     return user_weight, hidden_feature
 
@@ -561,19 +546,20 @@ def get_user_prediction_SVD(user_IDs):
 
 
     return user
-
+#
 # filename_subset = "subset_unique_tracks.txt"
 # tracks_filename = "full_log.txt"
 # base_dir = "../data"
 #  # Hidden feature number k98
 # k = 5
-# lean_rate = 0.001
-# lambda_rate = 0.02
-# max_iter = 3
+# lean_rate = 0.00001
+# lambda_rate = 0.00
+# max_iter = 3000
+#
 # #hidden_feature = get_hidden_feature_matrix_SVD(tracks_filename, filename_subset, base_dir, k)
 #
 # user, feature = get_hidden_feature_matrix_SGD(tracks_filename, filename_subset, base_dir, k, lean_rate, lambda_rate, max_iter)
-#
+# print feature[0:10,:]
 #
 # hist, bin_edges = numpy.histogram(feature, bins=20)
 # print hist

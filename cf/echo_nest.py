@@ -136,8 +136,8 @@ def get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_r
     return user_weight, hidden_feature
 
 k = 5
-lean_rate = 0.001
-lambda_rate = 0.02
+lean_rate = 0.00001
+lambda_rate = 0.00
 max_iter = 5000
 
 filename_tracks = "subset_unique_tracks.txt"
@@ -145,6 +145,7 @@ filename_echo_nest = "train_triplets.txt"
 k = 5
 user, hidden_feature_matrix = get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_rate, lambda_rate, max_iter)
 
+print hidden_feature_matrix[0:10,:]
 hist, bin_edges = numpy.histogram(hidden_feature_matrix, bins=20)
 print hist
 print bin_edges
