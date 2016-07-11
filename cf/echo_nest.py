@@ -150,6 +150,6 @@ hist, bin_edges = numpy.histogram(hidden_feature_matrix, bins=20)
 print hist
 print bin_edges
 
+# Save the matrix to a .mat file
 sio.savemat('hidden_features.mat', {'hidden_features':hidden_feature_matrix})
-print hidden_feature_matrix[1:5,:]
 
