@@ -2,6 +2,7 @@ import io
 import operator
 import numpy
 from hidden_feature_prediction import *
+import scipy.io as sio
 
 def get_song_ID_index(filename):
 
@@ -148,3 +149,7 @@ print hidden_feature_matrix[0:10,:]
 hist, bin_edges = numpy.histogram(hidden_feature_matrix, bins=20)
 print hist
 print bin_edges
+
+# Save the matrix to a .mat file
+sio.savemat('hidden_features.mat', {'hidden_features':hidden_feature_matrix})
+
