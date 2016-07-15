@@ -22,13 +22,13 @@ print '==> processing options'
 seed = 1 --fixed randomization
 torch.manualSeed(seed)
 
-para = {savedir = "~/",
+para = {savedir = "log/",
 		optimization = 'CG',
 		loss = 'mse', -- mean square error
 		trainNum = 20, -- 1200 in 1662
 		testNum = 20, -- 462  in 1662
 		maxIter = 50,
-		learningRate = 0.001 ,
+		learningRate = 1 , -- 0.001
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
@@ -96,6 +96,9 @@ for i = 1,50 do
 end
 
 -- save training result and logger
+--realOutput = model:forward(testData)
+--model = model:double()
 --matio.save('cnn1.mat',model)
+--matio.save('output1.mat',realOutput)
 --matio.save('log1.mat',trainLogger)
 -- there might be many other things need to be stored
