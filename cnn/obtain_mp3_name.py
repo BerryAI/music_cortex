@@ -1,9 +1,13 @@
+import io
+import urllib
+import urllib2
+import json
 from os import listdir
 
 def obtain_mp3_name(filepath):
     '''use os.dirlist() to read all mp3 file names
        :param filename: filename of the song preview file
-       :return namelist: all mp3 file name
+       :return name_list: all mp3 file name
        :rtype: list
        :Author: Chris Hu
     '''
@@ -18,3 +22,21 @@ def obtain_mp3_name(filepath):
             name_list.append(filename[:-4])#add into list if mp3 file
             
     return name_list
+
+def obtain_exist_song_ID(index_file):
+    '''read all existing song ID
+       :param filename: filename of the song preview file
+       :return song_ID_list: all existing song ID
+       :rtype: list
+       :Author: Chris Hu
+    '''
+    #
+    song_ID_list = []
+    
+    with io.open(index_file, 'r') as fp:
+        for line in fp:
+            contents = line.rstrip('\n').split("<SEP>")
+            song_ID = contents[3]
+            song_ID_list.append(song_ID)
+
+    return song_ID_list
