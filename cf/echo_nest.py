@@ -93,12 +93,14 @@ def get_hidden_feature_matrix(filename_echo_nest, filename_tracks, k):
 
     return V_bar.T
 
-def write_song_index_file(song_index_rate, name_index, index_filename):
+def write_song_index_file(song_index_rate, song_index, name_index, index_filename):
 
     inv_song_index_rate = {v: k for k, v in song_index_rate.items()}
+    inv_song_index = {v: k for k, v in song_index.items()}
     with io.open(index_filename,'w',encoding='utf8') as f:
         for key in inv_song_index_rate:
-            info = str(key) + "<SEP>" + name_index[inv_song_index_rate[key]] + "\n"
+            info = str(key) + "<SEP>" + name_index[inv_song_index_rate[key]]
+            info = info + "<SEP>" + inv_song_index[inv_song_index_rate[key]] + "\n"
             f.write(info)
 
 
@@ -127,9 +129,7 @@ def get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_r
         top_user_rating_dict[value[0]] = user_rating_dict[value[0]]
     user_index, song_index_rate, rating_matrix = full_rating_matrix_with_index(top_user_rating_dict)
 
-    write_song_index_file(song_index_rate, name_index, "index_file.txt")
-
-    print "SGD starts"
+    write_song_index_file(song_index_rate, song_index, name_index, "index_file.txt")
 
     user_weight, hidden_feature = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
