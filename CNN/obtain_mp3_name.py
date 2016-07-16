@@ -3,7 +3,7 @@ from os import listdir
 def obtain_mp3_name(filepath):
     '''use os.dirlist() to read all mp3 file names
        :param filename: filename of the song preview file
-       :return namelist: all mp3 file name and dir
+       :return namelist: all mp3 file name
        :rtype: list
        :Author: Chris Hu
     '''
@@ -15,6 +15,6 @@ def obtain_mp3_name(filepath):
     #check last 3 char to ensure mp3 files
     for filename in filename_list:
         if filename[-3:]=='mp3':
-            name_list.append(filepath+filename)#add into list if mp3 file
+            name_list.append(filename[:-4])#add into list if mp3 file
             
     return name_list
