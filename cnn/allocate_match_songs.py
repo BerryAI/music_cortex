@@ -17,9 +17,12 @@ output_dir = '/home/share/MillionSongSubset/features/'
 #get existing list and echonest list
 name_list = obtain_mp3_name(input_dir)
 song_dict = obtain_exist_song_ID(index_file)
-
-#name_dict = dict(zip(name_list,name_list))
+match_dict = {}
 
 for name in name_list:
     if name in song_dict.keys():
-        print song_dict[name]
+        match_dict.update({name:song_dict[name]})
+
+#print match_dict
+#print len(match_dict)
+sio.savemat('match_dict',match_dict)
