@@ -31,16 +31,12 @@ def obtain_exist_song_ID(index_file):
        :Author: Chris Hu
     '''
     #
-    song_ID_list = []
-    song_num_list = []
+    song_list = {}
     
     with io.open(index_file, 'r') as fp:
         for line in fp:
             contents = line.rstrip('\n').split("<SEP>")
             song_num = contents[0]
             song_ID = contents[3]
-            song_num_list.append(song_num)
-            song_ID_list.append(song_ID)
-
-    song_list = dict(zip(song_ID_list,song_num_list))
+            song_list.update({contents[3]:contents[0]})
     return song_list
