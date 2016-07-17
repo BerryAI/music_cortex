@@ -26,17 +26,21 @@ def obtain_mp3_name(filepath):
 def obtain_exist_song_ID(index_file):
     '''read all existing song ID
        :param filename: filename of the song preview file
-       :return song_ID_list: all existing song ID
-       :rtype: list
+       :return song_list: all existing song ID & row numbers
+       :rtype: dict
        :Author: Chris Hu
     '''
     #
     song_ID_list = []
+    song_num_list = []
     
     with io.open(index_file, 'r') as fp:
         for line in fp:
             contents = line.rstrip('\n').split("<SEP>")
+            song_num = contents[0]
             song_ID = contents[3]
+            song_num_list.append(song_num)
             song_ID_list.append(song_ID)
 
-    return song_ID_list
+    song_list = dict(zip(song_ID_list,song_num_list))
+    return song_list

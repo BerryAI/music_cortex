@@ -3,7 +3,7 @@ import numpy as np
 import os.path
 import scipy.io as sio
 from extract_acoustic_feature import *
-from obtain_mp3_name import *
+from obtain_name import *
 
 
 '''extract features from 520 song previews
