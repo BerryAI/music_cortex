@@ -22,4 +22,4 @@ song_dict = obtain_exist_song_ID(index_file)
 
 for name in name_list:
     if name in song_dict.keys():
-        print song_dict[key]
+        print song_dict[name]
