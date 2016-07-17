@@ -5,8 +5,7 @@ import scipy.io as sio
 from extract_acoustic_feature import *
 from obtain_name import *
 
-
-'''extract features from 520 song previews
+'''extract features from all song previews
    :
    :
    :
