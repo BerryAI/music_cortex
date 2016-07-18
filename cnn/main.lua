@@ -25,15 +25,15 @@ torch.manualSeed(seed)
 para = {savedir = "log/",
 		optimization = 'CG',
 		loss = 'mse', -- mean square error
-		trainNum = 20, -- 1200 in 1662
-		testNum = 20, -- 462  in 1662
+		trainNum = 300, -- 300 in 577
+		testNum = 277, -- 277  in 577
 		maxIter = 50,
 		learningRate = 1 , -- 0.001
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
 		batchSize = 5, --100
-		noutputs = 15,
+		noutputs = 5,
 		plot = false,
 		save = false}
 
@@ -66,8 +66,9 @@ cnn_loss()
 print '==> here is the loss function:'
 print(criterion)
 
+-- this class thing is actually useless, will replace them later
 -- classes 15
-classes = {'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'}
+classes = {'1','2','3','4','5'}
 
 -- This matrix records the current confusion across classes
 confusion = optim.ConfusionMatrix(classes)
