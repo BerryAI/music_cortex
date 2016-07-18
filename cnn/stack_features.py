@@ -15,12 +15,9 @@ input_dir = '/home/chrishu/MSD/'
 #match_index = sio.loadmat('match_index.mat')
 match_name = sio.loadmat('match_name.mat')
 
-num_el = np.shape(match_name['name'])[1]
-
+num_el = len(match_name['name'])
 
 cnn_features = np.zeros((num_el,128,1294))
-
-
 
 for i in range(num_el):
     infile = os.path.join(input_dir,match_name['name'][i]+'.mat')
@@ -28,4 +25,4 @@ for i in range(num_el):
     cnn_features[i, :, :] = features['x']
     print i
 
-sio.savemat('cnn_features',{'cnn_feature':cnn_features})
+sio.savemat('cnn_features',{'cnn_features':cnn_features})
