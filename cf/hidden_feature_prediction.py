@@ -52,7 +52,6 @@ def read_intersect_user_log(filename, unique_tracks_info_dict):
     """
     user_log_MSD = dict()
     user_track_timestamp_MSD = dict()
-    count = 0
     with io.open(filename,'r',encoding='utf8') as fp:
         for line in fp:
             contents = line.rstrip('\n').rstrip('\r').split("\t")
@@ -274,25 +273,94 @@ def stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
     residue = update_residue(rating_matrix, rate_bar)
 
     res_norm = numpy.linalg.norm(residue)
+    res_norm_list = []
 
     for h in range (0, max_iter):
 
-        user_weight = lean_rate*residue.dot(hidden_feature) + user_weight
+        user_weight = lean_rate*residue.dot(hidden_feature) + (1 - lean_rate*lambda_rate)*user_weight
 
         rate_bar = user_weight.dot(hidden_feature.T)
         residue = update_residue(rating_matrix, rate_bar)
 
-        hidden_feature = lean_rate*residue.T.dot(user_weight) + hidden_feature
+        hidden_feature = lean_rate*residue.T.dot(user_weight) + (1 - lean_rate*lambda_rate)*hidden_feature
 
         rate_bar = user_weight.dot(hidden_feature.T)
         residue = update_residue(rating_matrix, rate_bar)
 
         res_norm = numpy.linalg.norm(residue)
+        res_norm_list.append(res_norm)
 
         if res_norm < 0.01:
             break
 
-    return user_weight, hidden_feature
+    return user_weight, hidden_feature, res_norm_list
+
+def stochastic_GD_with_ini(rating_matrix, user_weight, lean_rate, hidden_feature, lambda_rate, max_iter):
+    """Stochastic Gradient Descent method
+
+    :param rating_matrix: filename of unique MSD tracks
+    :param lean_rate: learner rate
+    :param lambda_rate: lambda rate
+    :param k: number of hidden features
+    :return user_weight: user weight matrix
+    :return hidden_feature: hidden_feature_matrix
+    :rtype: ndarray
+    """
+
+    rate_bar = user_weight.dot(hidden_feature.T)
+    residue = update_residue(rating_matrix, rate_bar)
+
+    res_norm = numpy.linalg.norm(residue)
+    res_norm_old = res_norm
+    res_norm_list = []
+
+    full_success = 1
+
+    for h in range (0, max_iter):
+
+        user_weight = lean_rate*residue.dot(hidden_feature) + (1 - lean_rate*lambda_rate)*user_weight
+
+        rate_bar = user_weight.dot(hidden_feature.T)
+        residue = update_residue(rating_matrix, rate_bar)
+
+        hidden_feature = lean_rate*residue.T.dot(user_weight) + (1 - lean_rate*lambda_rate)*hidden_feature
+
+        rate_bar = user_weight.dot(hidden_feature.T)
+        residue = update_residue(rating_matrix, rate_bar)
+
+        res_norm = numpy.linalg.norm(residue)
+        res_norm_list.append(res_norm)
+        print h, res_norm, res_norm_old
+
+        if res_norm > res_norm_old:
+            full_success = 0
+            break
+        if res_norm < 0.01:
+            full_success = 2
+            break
+        res_norm_old = res_norm
+
+    return user_weight, hidden_feature, res_norm_list, full_success
+
+def stochastic_GD_r(rating_matrix, lean_rate, lambda_rate, k, max_iter):
+
+    user_weight, hidden_feature, res_norm_list = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
+
+    full_success = 1
+
+    for i in range(0,10):
+
+        if full_success == 2:
+            break
+        if full_success == 1:
+            lean_rate = 2*lean_rate
+        if full_success == 0:
+            lean_rate = lean_rate/2
+
+        user_weight, hidden_feature, res_norm_list_tmp, full_success = stochastic_GD_with_ini(rating_matrix, user_weight, lean_rate, hidden_feature, lambda_rate, max_iter)
+        res_norm_list = res_norm_list + res_norm_list_tmp
+
+    return user_weight, hidden_feature, res_norm_list
 
 
 def batch_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
@@ -419,9 +487,9 @@ def get_hidden_feature_matrix_SGD(user_log_intersection_filename, tracks_filenam
 
     print "SGD starts"
 
-    user_weight, hidden_feature = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
+    user_weight, hidden_feature, res_norm_list = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
-    return user_weight, hidden_feature
+    return user_weight, hidden_feature, res_norm_list
 
 def get_acoustic_data_with_rate_matrix(user_log_intersection_filename, tracks_filename, base_dir):
     """Get CNN training data by user ID
@@ -551,15 +619,15 @@ def get_user_prediction_SVD(user_IDs):
 # tracks_filename = "full_log.txt"
 # base_dir = "../data"
 #  # Hidden feature number k98
-# k = 5
-# lean_rate = 0.00001
-# lambda_rate = 0.00
-# max_iter = 3000
-#
+# k = 30
+# lean_rate = 0.0001
+# lambda_rate = 0.02
+# max_iter = 300
+
 # #hidden_feature = get_hidden_feature_matrix_SVD(tracks_filename, filename_subset, base_dir, k)
-#
-# user, feature = get_hidden_feature_matrix_SGD(tracks_filename, filename_subset, base_dir, k, lean_rate, lambda_rate, max_iter)
+# user, feature, error = get_hidden_feature_matrix_SGD(tracks_filename, filename_subset, base_dir, k, lean_rate, lambda_rate, max_iter)
 # print feature[0:10,:]
+# print error
 #
 # hist, bin_edges = numpy.histogram(feature, bins=20)
 # print hist

@@ -1,6 +1,7 @@
 import io
 import operator
 import numpy
+import os
 from hidden_feature_prediction import *
 
 def get_song_ID_index(filename):
@@ -128,23 +129,26 @@ def get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_r
         top_user_rating_dict[value[0]] = user_rating_dict[value[0]]
     user_index, song_index_rate, rating_matrix = full_rating_matrix_with_index(top_user_rating_dict)
 
-    write_song_index_file(song_index_rate, song_index, name_index, "index_file.txt")
+    if os.path.isfile("index_file.txt") is not True:
+        write_song_index_file(song_index_rate, song_index, name_index, "index_file.txt")
+        print "not true"
 
-    user_weight, hidden_feature = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
+    user_weight, hidden_feature, error = stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
-    return user_weight, hidden_feature
+    return user_weight, hidden_feature, error
 
 k = 5
 lean_rate = 0.00001
 lambda_rate = 0.00
-max_iter = 5000
+max_iter = 500
 
 filename_tracks = "subset_unique_tracks.txt"
 filename_echo_nest = "train_triplets.txt"
 k = 5
-user, hidden_feature_matrix = get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_rate, lambda_rate, max_iter)
+user, hidden_feature_matrix, error = get_hidden_feature_matrix_SGD(filename_echo_nest, filename_tracks, k, lean_rate, lambda_rate, max_iter)
 
 print hidden_feature_matrix[0:10,:]
+
 hist, bin_edges = numpy.histogram(hidden_feature_matrix, bins=20)
 print hist
 print bin_edges
