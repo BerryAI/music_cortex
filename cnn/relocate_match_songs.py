@@ -1,8 +1,6 @@
-import librosa
 import numpy as np
 import os.path
 import scipy.io as sio
-from extract_acoustic_feature import *
 from obtain_name import *
 
 '''
