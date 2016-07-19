@@ -12,7 +12,7 @@
 
     :auther: Alexander Z Wang
 """
-
+import bumpy
 import msd
 import echo_nest as en
 import cf_hidden_feature as ch
@@ -21,24 +21,26 @@ k = 5
 lean_rate = 0.00001
 lambda_rate = 0.00
 max_iter = 5000
+GD_method = 1
 
 filename_tracks = "subset_unique_tracks.txt"
 filename_echo_nest = "train_triplets.txt"
-k = 5
 num = 1000
 
+print "Reading MSD and Echo Nest Data..."
 song_index, name_index = msd.get_song_ID_index(filename_tracks)
 echo_nest_user_history = en.get_echo_nest_user_history(
                                 filename_echo_nest, song_index)
-top_user_rating_dict = en.get_top_user_rating_from_history_echo_nest(
+user_rate_dict = en.get_top_user_rating_from_history_echo_nest(
                                 echo_nest_user_history, num)
-user_index, song_index_rate, rating_matrix = en.full_rating_matrix_with_index(
-                                top_user_rating_dict)
+
+print "Calculating Hidden Features"
 
 user_weight, hidden_feature = ch.get_hidden_feature_matrix_GD(user_rate_dict,
                                 k, lean_rate, lambda_rate, max_iter, GD_method)
-
-print hidden_feature_matrix[0:10,:]
-hist, bin_edges = numpy.histogram(hidden_feature_matrix, bins=20)
+                                
+print "hidden features of 10 songs"
+print hidden_feature[0:10,:]
+hist, bin_edges = numpy.histogram(hidden_feature, bins=20)
 print hist
 print bin_edges

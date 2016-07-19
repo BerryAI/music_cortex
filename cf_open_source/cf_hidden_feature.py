@@ -132,7 +132,6 @@ def stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
         residue = update_residue(rating_matrix, rate_bar)
 
         res_norm = numpy.linalg.norm(residue)
-        print h, res_norm
 
         if res_norm < 0.01:
             break
@@ -176,7 +175,7 @@ def stochastic_GD_with_ini(rating_matrix, user_weight, lean_rate,
         residue = update_residue(rating_matrix, rate_bar)
 
         res_norm = numpy.linalg.norm(residue)
-
+        
         if res_norm > res_norm_old:
             full_iteration = 0
             break
