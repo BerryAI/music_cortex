@@ -13,7 +13,7 @@ require 'optim'   -- an optimization package, for online and batch methods
 function optzset()
 	print '==> configuring optimizer parameters'
 	
-	if para.optimization == 'CG' then
+	if para.optimization == 'CG' then -- this method is now bugged, debugging wip
 	   optimState = {
 	      maxIter = para.maxIter
 	   }

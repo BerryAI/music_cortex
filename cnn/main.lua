@@ -23,12 +23,12 @@ seed = 1 --fixed randomization
 torch.manualSeed(seed)
 
 para = {savedir = "log/",
-		optimization = 'CG',
+		optimization = 'SGD',
 		loss = 'mse', -- mean square error
 		trainNum = 300, -- 300 in 577
-		testNum = 277, -- 277  in 577
+		testNum = 100, -- 277  in 577
 		maxIter = 50,
-		learningRate = 1 , -- 0.001
+		learningRate = 0.1 , -- 0.001
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
