@@ -28,6 +28,7 @@ function test()
    model:evaluate()
 
    -- test over test data
+   local lossAvg = 0
    print('==> testing on test set:')
    for t = 1,para.testNum do
       -- disp progress
@@ -41,6 +42,8 @@ function test()
       -- test sample
       local pred = model:forward(input)
       confusion:add(pred, target)
+      local lossDif = pred-target:cuda()
+      lossAvg = lossAvg+torch.dot(lossDif,lossDif)
    end
 
    -- timing
@@ -49,7 +52,9 @@ function test()
    print("\n==> time to test 1 sample = " .. (time*1000) .. 'ms')
 
    -- print confusion matrix
-   print(confusion)
+--   print(confusion)
+   lossAvg = (lossAvg/para.testNum)/15 --15 classes
+   print("\n==> Loss = " .. lossAvg)
 
    -- update log/plot
    testLogger:add{['% mean class accuracy (test set)'] = confusion.totalValid * 100}
