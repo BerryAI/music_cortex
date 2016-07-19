@@ -89,17 +89,26 @@ criterion:cuda()
 ----------------------------------------------------------------------
 print '==> training!'
 
+rLoss = torch.CudaTensor(50)
 for i = 1,50 do
 	-- defining training procedure
 	train()
 	-- defining test procedure
-	test()
+	rLoss[i] = test()
 end
 
+print '==> Calculating final output!'
+realOutput = model:forward(testData:cuda())
+
 -- save training result and logger
---realOutput = model:forward(testData)
---model = model:double()
---matio.save('cnn1.mat',model)
---matio.save('output1.mat',realOutput)
+print '==> Convert CudaTensor to DoubleTensor for storage!'
+model = model:double()
+realOutput = realOutput:double()
+rLoss = rLoss:double()
+
+print '==> Saving files!'
+torch.save('cnn1.dat',model)
+matio.save('output1.mat',realOutput)
+matio.save('loss1.mat',rLoss)
 --matio.save('log1.mat',trainLogger)
 -- there might be many other things need to be stored

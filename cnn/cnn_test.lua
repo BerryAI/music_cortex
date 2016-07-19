@@ -53,7 +53,7 @@ function test()
 
    -- print confusion matrix
 --   print(confusion)
-   lossAvg = (lossAvg/para.testNum)/15 --15 classes
+   lossAvg = (lossAvg/para.testNum)/5 --5 classes
    print("\n==> Loss = " .. lossAvg)
 
    -- update log/plot
@@ -71,4 +71,5 @@ function test()
    
    -- next iteration:
    confusion:zero()
+   return lossAvg
 end
