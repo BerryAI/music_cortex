@@ -6,7 +6,6 @@
 
 require 'torch'
 require 'cunn'
-require 'os'
 require("cnn_model.lua")
 require("cnn_loss.lua")
 require("cnn_train.lua")
@@ -29,11 +28,11 @@ para = {savedir = "log/",
 		trainNum = 300, -- 300 in 577
 		testNum = 100, -- 277  in 577
 		maxIter = 50,
-		learningRate = 0.001 , -- 0.001
+		learningRate = 0.1 , -- 0.001
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
-		batchSize = 50, --100
+		batchSize = 5, --100
 		noutputs = 5,
 		plot = false,
 		save = false}
@@ -90,8 +89,8 @@ criterion:cuda()
 ----------------------------------------------------------------------
 print '==> training!'
 
-rLoss = torch.CudaTensor(para.maxIter)
-for i = 1,para.maxIter do
+rLoss = torch.CudaTensor(50)
+for i = 1,50 do
 	-- defining training procedure
 	train()
 	-- defining test procedure
@@ -108,9 +107,8 @@ realOutput = realOutput:double()
 rLoss = rLoss:double()
 
 print '==> Saving files!'
-tlabel = os.date("%y%m%d%H%M%S")
-torch.save('cnn'..tlabel..'.dat',model)
-matio.save('output'..tlabel..'.mat',realOutput)
-matio.save('loss'..tlabel..'.mat',rLoss)
---matio.save('log0.mat',trainLogger)
+torch.save('cnn1.dat',model)
+matio.save('output1.mat',realOutput)
+matio.save('loss1.mat',rLoss)
+--matio.save('log1.mat',trainLogger)
 -- there might be many other things need to be stored
