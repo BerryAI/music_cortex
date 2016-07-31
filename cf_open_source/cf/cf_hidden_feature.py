@@ -9,7 +9,7 @@
 """
 
 import numpy
-import sklearn.neural_network as nn
+from time import time
 from sklearn.neural_network import MLPClassifier
 
 
@@ -361,21 +361,22 @@ def get_user_prediction_MLP(
             hidden_feature, user_rate_dict, song_index, user_ID)
 
     mlp = MLPClassifier(
-        hidden_layer_sizes=(50,), max_iter=50, alpha=1e-4,
-        algorithm='sgd', verbose=10, tol=1e-4, random_state=1,
-        learning_rate_init=.01)
+        hidden_layer_sizes=(5,), max_iter=3000, alpha=1e-2,
+        algorithm='sgd', verbose=False, tol=1e-4, random_state=1,
+        learning_rate_init=.01, activation='tanh')
     mlp.fit(training_matrix, training_target)
     user_prediction = mlp.predict(hidden_feature)
 
-    return user_prediction
+    return user_prediction.tolist()
 
 
 def get_predict_matrix_MLP(
         user_rate_dict, k=5, learn_rate=0.0001, lambda_rate=0.02,
         max_iter=300, GD_method=1):
     """Get predict matrix
-
-    To be added
+    :param user_rate_dict: user rating matrix (sparse)
+    :return predict_matrix: prediction matrix
+    :rtype: ndarray
     """
 
     predict_matrix = []
@@ -392,10 +393,14 @@ def get_predict_matrix_MLP(
             rating_matrix, learn_rate, lambda_rate, k, max_iter)
 
     inv_user_index = dict((v, k) for k, v in user_index.iteritems())
+
+    start_time = time()
     for i in inv_user_index:
         user_ID = inv_user_index[i]
         user_prediction = get_user_prediction_MLP(
                 hidden_feature, user_rate_dict, song_index, user_ID)
         predict_matrix.append(user_prediction)
+    end_time = time()
+    print "MLP calculation time is: ", end_time-start_time
 
     return numpy.array(predict_matrix)
