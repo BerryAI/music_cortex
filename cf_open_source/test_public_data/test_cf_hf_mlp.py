@@ -26,6 +26,10 @@ filename_subset = "../../../data/subset_unique_tracks.txt"
 user_log_intersection_filename = "../../../data/full_log.txt"
 # number of hidden features
 k = 5
+lean_rate = 0.00001
+lambda_rate = 0.00
+max_iter = 500
+GD_method = 1
 
 print "Reading MSD and 1k user data..."
 # get MSD track dictionary
@@ -37,6 +41,12 @@ user_log_MSD, user_track_timestamp_MSD = msd.read_intersect_user_log(
     user_log_intersection_filename, unique_tracks_info_dict)
 # get user rating dictionary
 user_rate_dict = msd.get_track_rating_from_history(user_track_timestamp_MSD)
+
+# get user profile
+# if you want to test the function, please uncomment next three line
+# user_profile = ch.get_user_profile(
+#     user_rate_dict, k, lean_rate, lambda_rate, max_iter, GD_method)
+# print user_profile
 
 print "Calculating Hidden Features..."
 
