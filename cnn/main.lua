@@ -26,14 +26,14 @@ torch.manualSeed(seed)
 para = {savedir = "log/",
 		optimization = 'SGD',
 		loss = 'mse', -- mean square error
-		trainNum = 300, -- 300 in 577
-		testNum = 100, -- 277  in 577
+		trainNum = 400, -- 300 in 577
+		testNum = 150, -- 277  in 577
 		maxIter = 50,
-		learningRate = 0.001 , -- 0.001
+		learningRate = 0.05 , -- 0.001
 		weightDecay = 0,
 		startAveraging = 1,
 		momentum = 0,
-		batchSize = 50, --100
+		batchSize = 25, --100
 		noutputs = 5,
 		plot = false,
 		save = false}
@@ -75,9 +75,9 @@ classes = {'1','2','3','4','5'}
 confusion = optim.ConfusionMatrix(classes)
 
 -- Log results to files
-print '==> defining some tools'
-trainLogger = optim.Logger(paths.concat(para.savedir, 'train.log'))
-testLogger = optim.Logger(paths.concat(para.savedir, 'test.log'))
+--print '==> defining some tools'
+--trainLogger = optim.Logger(paths.concat(para.savedir, 'train.log'))
+--testLogger = optim.Logger(paths.concat(para.savedir, 'test.log'))
 
 -- configuring optimizer parameters
 optzset()
@@ -91,10 +91,12 @@ criterion:cuda()
 print '==> training!'
 
 rLoss = torch.CudaTensor(para.maxIter)
+tLoss = torch.CudaTensor(para.maxIter)
 for i = 1,para.maxIter do
 	-- defining training procedure
 	train()
 	-- defining test procedure
+	tLoss[i] = traintest()
 	rLoss[i] = test()
 end
 
@@ -106,11 +108,13 @@ print '==> Convert CudaTensor to DoubleTensor for storage!'
 model = model:double()
 realOutput = realOutput:double()
 rLoss = rLoss:double()
+tLoss = tLoss:double()
 
-print '==> Saving files!'
 tlabel = os.date("%y%m%d%H%M%S")
-torch.save('cnn'..tlabel..'.dat',model)
-matio.save('output'..tlabel..'.mat',realOutput)
-matio.save('loss'..tlabel..'.mat',rLoss)
---matio.save('log0.mat',trainLogger)
+print ('==> Saving files!' .. tlabel)
+torch.save('log/cnn'..tlabel..'.dat',model)
+matio.save('log/output'..tlabel..'.mat',realOutput)
+matio.save('log/loss'..tlabel..'.mat',rLoss)
+matio.save('log/tloss'..tlabel..'.mat',tLoss)
+--matio.save('log/log0.mat',trainLogger)
 -- there might be many other things need to be stored

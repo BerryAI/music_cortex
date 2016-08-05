@@ -144,11 +144,11 @@ function train()
 	print("\n")
 
 	-- update logger/plot
-	trainLogger:add{['% mean class accuracy (train set)'] = confusion.totalValid * 100}
-	if para.plot then
-		trainLogger:style{['% mean class accuracy (train set)'] = '-'}
-		trainLogger:plot()
-	end
+--	trainLogger:add{['% mean class accuracy (train set)'] = confusion.totalValid * 100}
+--	if para.plot then
+--		trainLogger:style{['% mean class accuracy (train set)'] = '-'}
+--		trainLogger:plot()
+--	end
 
 	-- save/log current net
 --	local filename = paths.concat(para.save, 'model.net')

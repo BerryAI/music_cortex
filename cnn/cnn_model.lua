@@ -14,11 +14,11 @@ require 'dp'
 function cnn_model()
    model = nn.Sequential() 
    -- convolution layers
-   model:add(nn.SpatialConvolution(1, 64, 4, 128))
+   model:add(nn.SpatialConvolution(1, 32, 4, 128))
    model:add(nn.ReLU())
    model:add(nn.SpatialMaxPooling(4, 1, 4, 1))
    
-   model:add(nn.SpatialConvolution(64, 64, 4, 1))
+   model:add(nn.SpatialConvolution(32, 64, 4, 1))
    model:add(nn.ReLU())
    model:add(nn.SpatialMaxPooling(2, 1, 2, 1))
    
@@ -26,7 +26,7 @@ function cnn_model()
    model:add(nn.ReLU())
    model:add(nn.SpatialMaxPooling(4, 1, 4, 1))
   
-   model:add(nn.SpatialConvolution(64, 24, 4, 1))
+   model:add(nn.SpatialConvolution(64, 64, 4, 1))
    model:add(nn.ReLU())
    -- fully connected layers
 --   model:add(nn.Dropout(0.5))
