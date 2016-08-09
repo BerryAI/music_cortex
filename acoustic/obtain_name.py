@@ -1,7 +1,7 @@
 import io
-import urllib
-import urllib2
-import json
+#import urllib
+#import urllib2
+#import json
 from os import listdir
 
 def obtain_mp3_name(filepath):
