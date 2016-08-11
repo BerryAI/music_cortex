@@ -9,8 +9,6 @@
 """
 
 import numpy
-from time import time
-from sklearn.neural_network import MLPClassifier
 
 
 def full_rating_matrix_with_index(user_rate_dict):
@@ -113,7 +111,7 @@ def stochastic_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
     :param k: number of hidden features
     :param max_iter: maximum iteration steps in gradient descent method
     :return user_weight: user weight matrix
-    :return hidden_feature: hidden_feature_matrix
+    :return hidden_feature: hidden feature matrix
     :rtype: ndarray
     """
 
@@ -163,7 +161,7 @@ def stochastic_GD_with_ini(rating_matrix, user_weight, lean_rate,
     :param lambda_rate: lambda rate
     :param k: number of hidden features
     :return user_weight: user weight matrix
-    :return hidden_feature: hidden_feature_matrix
+    :return hidden_feature: hidden feature matrix
     :return full_iteration: flag of iteration status
     :return res_norm_list: list of error norm of each iteration
     :rtype: ndarray
@@ -215,7 +213,7 @@ def stochastic_GD_r(rating_matrix, lean_rate, lambda_rate, k,
     :param lambda_rate: lambda rate
     :param k: number of hidden features
     :return user_weight: user weight matrix
-    :return hidden_feature: hidden_feature_matrix
+    :return hidden_feature: hidden feature matrix
     :rtype: ndarray
     """
 
@@ -251,7 +249,7 @@ def batch_GD(rating_matrix, lean_rate, lambda_rate, k, max_iter):
     :param lambda_rate: lambda rate
     :param k: number of hidden features
     :return user_weight: user weight matrix
-    :return hidden_feature: hidden_feature_matrix
+    :return hidden_feature: hidden feature matrix
     :rtype: ndarray
     """
 
@@ -299,7 +297,7 @@ def get_hidden_feature_matrix_GD(
     :param max_iter: max iteration steps in GD
     :param method: number of the method
     :return user_weight: user weight matrix
-    :return hidden_feature: hidden_feature_matrix
+    :return hidden_feature: hidden feature matrix
     :rtype: ndarray
     """
 
@@ -331,7 +329,7 @@ def get_user_profile(
     :return user_profile: user weight profile
     :rtype: dictionary
     """
- 
+
     user_profile = dict()
 
     user_index, song_index, rating_matrix = full_rating_matrix_with_index(
@@ -345,99 +343,10 @@ def get_user_profile(
     if GD_method == 3:
         user_weight, hidden_feature, res_norm = batch_GD(
             rating_matrix, lean_rate, lambda_rate, k, max_iter)
-    
+
     for user in user_index:
         line_number = user_index[user]
-        weight_tmp = user_weight[line_number,:].tolist()
+        weight_tmp = user_weight[line_number, :].tolist()
         user_profile[user] = weight_tmp
 
     return user_profile
-
-
-def get_user_training_data(
-        hidden_feature, user_rate_dict, song_index, user_ID):
-    """Get hidden feature sub matrix for each user
-
-    :param hidden_feature: hidden feature matrix
-    :param user_rate_dict: user rating matrix
-    :param song_index: song index of hidden feature line number
-    :param user_ID: user ID
-    :return training_matrix: user submatrix of hidden features
-    :return training_target: user rating history vector
-    :rtype: ndarray
-    """
-
-    sub_matrix_tmp = []
-    sub_rate_vector = []
-
-    for key in user_rate_dict[user_ID]:
-        line_number = song_index[key]
-        sub_matrix_tmp.append(hidden_feature[line_number, :])
-        sub_rate_vector.append(user_rate_dict[user_ID][key])
-
-    training_matrix = numpy.array(sub_matrix_tmp)
-    training_target = numpy.array(sub_rate_vector)
-
-    return training_matrix, training_target
-
-
-def get_user_prediction_MLP(
-        hidden_feature, user_rate_dict, song_index, user_ID):
-    """Get hidden feature sub matrix for each user
-
-    :param hidden_feature: hidden feature matrix
-    :param user_rate_dict: user rating matrix
-    :param song_index: song index of hidden feature line number
-    :param user_ID: user ID
-    :return user_prediction: prediction of user rating scores
-    :rtype: ndarray
-    """
-
-    training_matrix, training_target = get_user_training_data(
-            hidden_feature, user_rate_dict, song_index, user_ID)
-
-    mlp = MLPClassifier(
-        hidden_layer_sizes=(5,), max_iter=3000, alpha=1e-2,
-        algorithm='sgd', verbose=False, tol=1e-4, random_state=1,
-        learning_rate_init=.01, activation='tanh')
-    mlp.fit(training_matrix, training_target)
-    user_prediction = mlp.predict(hidden_feature)
-
-    return user_prediction.tolist()
-
-
-def get_predict_matrix_MLP(
-        user_rate_dict, k=5, learn_rate=0.0001, lambda_rate=0.02,
-        max_iter=300, GD_method=1):
-    """Get predict matrix by MLP
-
-    :param user_rate_dict: user rating matrix (sparse)
-    :return predict_matrix: prediction matrix
-    :rtype: ndarray
-    """
-
-    predict_matrix = []
-    user_index, song_index, rating_matrix = full_rating_matrix_with_index(
-                                            user_rate_dict)
-    if GD_method == 1:
-        user_weight, hidden_feature, res_norm = stochastic_GD(
-            rating_matrix, learn_rate, lambda_rate, k, max_iter)
-    if GD_method == 2:
-        user_weight, hidden_feature, res_norm = stochastic_GD_r(
-            rating_matrix, learn_rate, lambda_rate, k, max_iter)
-    if GD_method == 3:
-        user_weight, hidden_feature, res_norm = batch_GD(
-            rating_matrix, learn_rate, lambda_rate, k, max_iter)
-
-    inv_user_index = dict((v, k) for k, v in user_index.iteritems())
-
-    start_time = time()
-    for i in inv_user_index:
-        user_ID = inv_user_index[i]
-        user_prediction = get_user_prediction_MLP(
-                hidden_feature, user_rate_dict, song_index, user_ID)
-        predict_matrix.append(user_prediction)
-    end_time = time()
-    print "MLP calculation time is: ", end_time-start_time
-
-    return numpy.array(predict_matrix)
