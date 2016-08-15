@@ -16,5 +16,11 @@ one_user = engine.get_users()[0]
 ratings = engine.get_ratings(user_id=one_user.id)
 print ratings
 
+# Recommend tracks for a user.
 recommended_tracks = engine.recommend(user_id=one_user.id, n=10)
+print recommended_tracks
+
+# Recommend tracks based on seed tracks.
+example_track_ids = [track.id for track in engine.tracks()[0:2]]
+recommended_tracks = engine.recommend(seed_track_ids=example_track_ids, n=10)
 print recommended_tracks

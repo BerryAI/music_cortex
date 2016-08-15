@@ -29,7 +29,9 @@ def __rating_to_prob(rating):
     """Transform a rating of 1 to 5 to a non-negatie number proportational to
     its probability of being sampled.
     """
-    return float(rating)
+    # Exponential scale: one step higher in rating results in twice as much as
+    # likely to be sampled.
+    return float(2 ** rating)
 
 
 def __sample_tracks_from_ratings(ratings, n, options):
