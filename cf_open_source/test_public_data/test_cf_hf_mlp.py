@@ -13,7 +13,6 @@
     :auther: Alexander Z Wang
 """
 
-import numpy
 import sys
 sys.path.append('../cf')
 sys.path.append('../read_public_data')
@@ -44,6 +43,7 @@ user_rate_dict = msd.get_track_rating_from_history(user_track_timestamp_MSD)
 
 # get user profile
 # if you want to test the function, please uncomment next three line
+
 # user_profile = ch.get_user_profile(
 #     user_rate_dict, k, lean_rate, lambda_rate, max_iter, GD_method)
 # print user_profile
