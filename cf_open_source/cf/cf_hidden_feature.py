@@ -9,6 +9,7 @@
 """
 
 import numpy
+import json
 
 
 def full_rating_matrix_with_index(user_rate_dict):
@@ -314,6 +315,24 @@ def get_hidden_feature_matrix_GD(
             rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
     return user_weight, hidden_feature, res_norm
+
+
+def write_hidden_feature_to_file(hf_filename, hidden_feature, song_index):
+    """Write hidden features to a Json file
+
+    :param hf_filename: filename for hidden feature matrix
+    :param hidden_feature: hidden feature matrix
+    :param song_index: index of song in hidden feature matrix
+    """
+
+    inv_song_index = dict((v, k) for k, v in song_index.iteritems())
+    data = dict()
+
+    for key in inv_song_index:
+        data[inv_song_index[key]] = hidden_feature[key].tolist()
+
+    with open(hf_filename, 'w') as outfile:
+        json.dump(data, outfile)
 
 
 def get_user_profile(
