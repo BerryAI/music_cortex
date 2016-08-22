@@ -34,12 +34,12 @@ function test()
 
 		-- get new sample
 		local input = testData[t]
-		input = input:cuda()
+
 		local target = testLabel[t]
 
 		-- test sample
 		local pred = model:forward(input)
-		local lossDif = pred-target:cuda()
+		local lossDif = pred-target
 		lossAvg = lossAvg+torch.dot(lossDif,lossDif)
 	end
 
@@ -84,12 +84,12 @@ function traintest()
 
 		-- get new sample
 		local input = trainData[t]
-		input = input:cuda()
+
 		local target = trainLabel[t]
 
 		-- test sample
 		local pred = model:forward(input)
-		local lossDif = pred-target:cuda()
+		local lossDif = pred-target
 		lossAvg = lossAvg+torch.dot(lossDif,lossDif)
 	end
 

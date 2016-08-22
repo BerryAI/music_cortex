@@ -75,8 +75,7 @@ function train()
 			-- load new sample
 			local input = trainData[shuffle[i]]
 			local target = trainLabel[shuffle[i]]
-			input = input:cuda();
-			target = target:cuda()
+
 			table.insert(inputs, input)
 			table.insert(targets, target)
 		end
