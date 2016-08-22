@@ -302,8 +302,9 @@ def get_hidden_feature_matrix_GD(
     :rtype: ndarray
     """
 
-    user_index, song_index, rating_matrix = full_rating_matrix_with_index(
-                                            user_rate_dict)
+    (user_index, song_index_hfmatrix,
+        rating_matrix) = full_rating_matrix_with_index(user_rate_dict)
+
     if GD_method == 1:
         user_weight, hidden_feature, res_norm = stochastic_GD(
             rating_matrix, lean_rate, lambda_rate, k, max_iter)
@@ -314,7 +315,8 @@ def get_hidden_feature_matrix_GD(
         user_weight, hidden_feature, res_norm = batch_GD(
             rating_matrix, lean_rate, lambda_rate, k, max_iter)
 
-    return user_weight, hidden_feature, res_norm
+    return (user_weight, hidden_feature, res_norm,
+            user_index, song_index_hfmatrix)
 
 
 def write_hidden_feature_to_file(hf_filename, hidden_feature, song_index):
@@ -353,6 +355,7 @@ def get_user_profile(
 
     user_index, song_index, rating_matrix = full_rating_matrix_with_index(
                                             user_rate_dict)
+
     if GD_method == 1:
         user_weight, hidden_feature, res_norm = stochastic_GD(
             rating_matrix, lean_rate, lambda_rate, k, max_iter)
