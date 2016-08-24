@@ -7,6 +7,32 @@
 """
 
 from sklearn.neural_network import MLPClassifier
+import json
+
+
+def write_user_rating_to_file(ur_filename, user_rate_dict):
+    """Write user rating dictionary to a Json file
+
+    :param ur_filename: filename for user rating dictionary
+    :param user_rate_dict: user rate score dictionary (sparse)
+    """
+
+    with open(ur_filename, 'w') as outfile:
+        json.dump(user_rate_dict, outfile)
+
+
+def read_user_rating_from_file(ur_filename):
+    """Read user rating dictionary from a Json file
+
+    :param ur_filename: filename for user rating dictionary
+    :return user_rate_dict: user rate score dictionary (sparse)
+    :rtype: dictionary
+    """
+
+    with open(ur_filename) as data_file:    
+        user_rate_dict = json.load(data_file)
+
+    return user_rate_dict
 
 
 def train_user_taste_model(track_hidden_features, user_ratings):
