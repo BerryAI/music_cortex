@@ -2,8 +2,32 @@
 """
 import numpy as np
 import random
+from catalog import SimpleCatalog
 
-# TODO: implement classes: Catalog, UserTasteModel, Track.
+# TODO: implement classes: UserTasteModel.
+
+
+class RecommendationEngine(object):
+
+    def __init__(self, catalog=SimpleCatalog()):
+        self.__catalog = catalog
+
+    def train(self, ratings):
+        raise NotImplementedError
+
+    def train_partial(self, ratings):
+        """The incremental training of models.
+        """
+        raise NotImplementedError
+
+    def recommend(self, user_id=None, seed_track_ids=None):
+        raise NotImplementedError
+
+    def get_users(self, num=10):
+        raise NotImplementedError
+
+    def get_tracks(self, num=10):
+        raise NotImplementedError
 
 
 def predict_rating(user_taste_model, track):
